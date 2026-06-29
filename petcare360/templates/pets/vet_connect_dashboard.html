@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🩺 {{ pet.name }}'s Smart Vet Connect</h2>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'pets:owner_dashboard' %}" class="btn btn-outline-secondary rounded-pill fw-bold">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <a href="{% url 'pets:pet_health_report' pet.id %}" target="_blank" class="btn btn-outline-info rounded-pill fw-bold" data-bs-toggle="tooltip" title="View & Print Full Report">
+                <i class="fas fa-file-medical me-1"></i> Auto Health Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Actions & AI Summary -->
+    <div class="row mb-4">
+        <!-- AI Smart Summary -->
+        <div class="col-md-7">
+            <div class="card shadow-sm h-100 border-0" style="border-radius: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-4">
+                        <i class="fas fa-brain me-2"></i>AI Health Summary (Last 7 Days)
+                    </h5>
+                    {% if smart_summary %}
+                        <ul class="list-group list-group-flush rounded-3 shadow-sm">
+                            {% for point in smart_summary %}
+                            <li class="list-group-item d-flex align-items-start border-0 fw-medium p-3 mb-1 rounded">
+                                <span>{{ point }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-light text-muted border-0 shadow-sm"><i class="fas fa-check-circle text-success me-2"></i> No significant trends found. Everything looks stable!</div>
+                    {% endif %}
+                    <p class="text-muted mt-3 mb-0 small"><i class="fas fa-info-circle me-1"></i> This summary is generated from Diet, Mood, and Medical logs to help vets quickly understand {{ pet.name }}'s status.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultation Request Block -->
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100 border-0" style="border-radius: 20px;">
+                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                    <h5 class="fw-bold mb-3">Consult a Veterinarian</h5>
+                    <p class="text-muted mb-4">Instantly share the auto-compiled health report with a professional.</p>
+                    
+                    <form method="POST" action="{% url 'pets:request_vet_consultation' pet.id %}" class="w-100">
+                        {% csrf_token %}
+                        <!-- Normal Consult -->
+                        <button type="submit" name="consultation_type" value="Normal" class="btn btn-primary rounded-pill w-100 py-3 mb-3 fw-bold fs-5 shadow-sm">
+                            <i class="fas fa-user-md me-2"></i> Request Normal Consult
+                        </button>
+                        
+                        <!-- Emergency Mode -->
+                        <button type="submit" name="consultation_type" value="Emergency" class="btn btn-danger rounded-pill w-100 py-3 fw-bold fs-5 shadow-sm pulse-button">
+                            <i class="fas fa-ambulance me-2"></i> EMERGENCY MODE 🚨
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lower Section -->
+    <div class="row">
+        <!-- Nearby Vets -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 20px;">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-map-marker-alt text-danger me-2"></i>Nearby Vet Clinics</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        {% for vet in nearby_vets %}
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100 bg-light position-relative">
+                                <span class="badge bg-success position-absolute top-0 end-0 m-2">{{ vet.distance }}</span>
+                                <h6 class="fw-bold text-dark">{{ vet.name }} <i class="fas fa-star text-warning small ms-1"></i> <span class="small text-muted">{{ vet.rating }}</span></h6>
+                                <p class="text-muted small mb-1"><i class="fas fa-location-arrow me-1"></i>{{ vet.address }}</p>
+                                <p class="text-muted small mb-2"><i class="fas fa-clock me-1"></i>{{ vet.status }}</p>
+                                <a href="tel:{{ vet.phone }}" class="btn btn-sm btn-outline-success rounded-pill fw-bold w-100"><i class="fas fa-phone-alt me-1"></i>{{ vet.phone }}</a>
+                            </div>
+                        </div>
+                        {% empty %}
+                            <p class="text-muted mt-3">No clinics found nearby.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Consultations Tracker -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 20px;">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-notes-medical text-primary me-2"></i>Active Requests</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if active_consultations %}
+                        <ul class="list-group list-group-flush">
+                            {% for consult in active_consultations %}
+                            <li class="list-group-item px-0 py-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">
+                                            {% if consult.consultation_type == 'Emergency' %}
+                                                <span class="text-danger"><i class="fas fa-ambulance"></i> Emergency</span>
+                                            {% else %}
+                                                <span class="text-primary"><i class="fas fa-comment-medical"></i> Normal</span>
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted">{{ consult.created_at|date:"M d, g:i a" }}</small>
+                                    </div>
+                                    <span class="badge rounded-pill px-3 py-2 
+                                        {% if consult.status == 'Pending' %}bg-warning text-dark
+                                        {% else %}bg-info text-dark{% endif %}">
+                                        {{ consult.status }}
+                                    </span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <i class="fas fa-check-circle text-muted fa-3x mb-3 opacity-25"></i>
+                            <p class="text-muted">No active consultations pending.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pulse-button {
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+</style>
+{% endblock %}

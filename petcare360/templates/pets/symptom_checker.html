@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>AI Symptom Checker 🤖</h2>
+  <p>Enter your pet's symptoms, and AI will suggest possible conditions.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <textarea
+      name="symptoms"
+      class="form-control"
+      placeholder="e.g., coughing, loss of appetite"
+      rows="3"
+    ></textarea>
+    <br />
+    <button type="submit" class="btn btn-primary">Check Symptoms</button>
+  </form>
+
+  {% if diagnosis %}
+      <div class="alert alert-info mt-3">
+        <strong>Possible Condition:</strong> {{ diagnosis }}
+        {% if treatment %}
+          <br>
+          <strong>Suggested Treatment:</strong> {{ treatment }}
+        {% endif %}
+      </div>
+    {% endif %}
+    {% if result %}
+<div class="card mt-4 border-success">
+  <div class="card-body">
+    <h5 class="text-success">✅ Possible Condition</h5>
+    <p><b>Condition:</b> {{ result.condition }}</p>
+    <p><b>Record Type:</b> {{ result.record_type }}</p>
+    <p><b>Care Profile:</b> {{ result.care_profile }}</p>
+    <p class="text-muted small">Dataset Case #{{ result.match_case }}</p>
+  </div>
+</div>
+</div>
+ {% endif %}
+{% endblock %}

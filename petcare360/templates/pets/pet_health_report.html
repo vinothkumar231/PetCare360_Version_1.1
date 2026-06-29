@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="card shadow-lg border-0" style="border-radius: 20px;">
+        <!-- Report Header -->
+        <div class="card-header bg-primary text-white p-5 text-center" style="border-radius: 20px 20px 0 0;">
+            <h1 class="display-5 fw-bold mb-0"><i class="fas fa-file-medical me-3"></i>Comprehensive Auto Health Report</h1>
+            <p class="lead mt-2 mb-0 opacity-75">Generated for {{ pet.name }} | {{ now|date:"F j, Y" }}</p>
+        </div>
+        
+        <div class="card-body p-5">
+            <div class="row mb-5">
+                <!-- Pet Profile Panel -->
+                <div class="col-md-4">
+                    <div class="card bg-light border-0 h-100 rounded-4">
+                        <div class="card-body text-center p-4">
+                            {% if pet.photo %}
+                                <img src="{{ pet.photo.url }}" class="rounded-circle shadow-sm mb-3" style="width: 150px; height: 150px; object-fit: cover;" alt="{{ pet.name }}">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 150px; height: 150px; font-size: 3rem;">
+                                    <i class="fas fa-paw"></i>
+                                </div>
+                            {% endif %}
+                            <h3 class="fw-bold">{{ pet.name }}</h3>
+                            <p class="text-muted"><i class="fas fa-paw me-1"></i> {{ report.pet_profile.breed|default:"Mixed Breed" }}</p>
+                            <hr class="text-muted">
+                            <ul class="list-unstyled mb-0 text-start">
+                                <li class="mb-2"><i class="fas fa-calendar-alt text-primary me-2"></i> <strong>Age:</strong> {{ report.pet_profile.age|default:"N/A" }} years</li>
+                                <li class="mb-2"><i class="fas fa-weight text-success me-2"></i> <strong>Weight:</strong> {{ report.pet_profile.weight|default:"N/A" }} kg</li>
+                                <li><i class="fas fa-venus-mars text-info me-2"></i> <strong>Gender:</strong> {{ report.pet_profile.gender|default:"N/A" }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Abstract / Notice -->
+                <div class="col-md-8">
+                    <div class="alert alert-info border-0 shadow-sm rounded-4 h-100 p-4 d-flex flex-column justify-content-center">
+                        <h4 class="alert-heading fw-bold"><i class="fas fa-bell me-2"></i>To the Attending Veterinarian</h4>
+                        <p class="mb-0 fs-5">This report is automatically compiled by PetCare 360 using the owner's logged data. It provides an immediate overview of vaccinations, past medical issues, and recent behavioral patterns (diet and mood) to assist in your diagnosis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical History & Vaccinations -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4">
+                    <h4 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-syringe text-success me-2"></i>Vaccination Record</h4>
+                    {% if report.vaccinations %}
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Vaccine</th>
+                                    <th>Date Given</th>
+                                    <th>Next Due</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vac in report.vaccinations %}
+                                <tr>
+                                    <td>{{ vac.vaccine_name }}</td>
+                                    <td>{{ vac.date_administered|date:"M d, Y" }}</td>
+                                    <td class="{% if vac.next_due < today %}text-danger fw-bold{% endif %}">{{ vac.next_due|date:"M d, Y"|default:"--" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted">No vaccination records found.</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <h4 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-notes-medical text-danger me-2"></i>Medical History</h4>
+                    {% if report.medical_history %}
+                        <ul class="list-group list-group-flush rounded shadow-sm">
+                            {% for med in report.medical_history %}
+                            <li class="list-group-item bg-light border-0 mb-1 rounded">
+                                <strong>{{ med.condition }}</strong> <small class="text-muted float-end">{{ med.date_diagnosed|date:"M d, Y" }}</small>
+                                {% if med.treatment %}<div class="small text-muted mt-1"><i class="fas fa-pills me-1"></i>{{ med.treatment }}</div>{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No past medical conditions registered.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Allergies & Recent Behavior -->
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h4 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-allergies text-warning me-2"></i>Known Allergies</h4>
+                    {% if report.allergies %}
+                        {% for allergy in report.allergies %}
+                            <span class="badge bg-danger p-2 mb-1">{{ allergy.allergen }} ({{ allergy.severity }})</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No known allergies.</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <h4 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-bone text-secondary me-2"></i>Recent Diet Log</h4>
+                    {% if report.recent_diet %}
+                        <ul class="list-unstyled text-muted">
+                            {% for meal in report.recent_diet|slice:":5" %}
+                                <li class="small mb-1"><i class="fas fa-utensils text-muted me-1"></i> {{ meal.meal_date|date:"M d" }}: {{ meal.food_item }} ({{ meal.time_of_day }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent diet logs.</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <h4 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-smile text-info me-2"></i>Recent Mood/Behavior</h4>
+                    {% if report.recent_mood %}
+                        <ul class="list-unstyled">
+                            {% for log in report.recent_mood|slice:":5" %}
+                                <li class="small mb-1"><i class="far fa-clock text-muted me-1"></i> {{ log.log_date|date:"M d" }}: <strong>{{ log.get_mood_display }}</strong></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent mood logs.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Print Button -->
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-dark rounded-pill px-5 fw-bold shadow">
+                    <i class="fas fa-print me-2"></i> Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .container, .container * {
+            visibility: visible;
+        }
+        .container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, .navbar, footer {
+            display: none !important;
+        }
+        .card-header { position: static !important; }
+    }
+</style>
+{% endblock %}

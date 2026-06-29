@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-paw fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h2 class="display-6 fw-bold text-dark mb-1">My Pets</h2>
+                    <p class="text-muted lead mb-0">Manage and view all your furry family members</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'pets:pet_create' %}" class="btn btn-primary rounded-pill px-4 py-2 shadow-hover">
+                <i class="fas fa-plus-circle me-2"></i>Add New Pet
+            </a>
+        </div>
+    </div>
+
+    {% if pets %}
+
+        <!-- Pet Grid View -->
+        <div class="row g-4">
+            {% for pet in pets %}
+            <div class="col-xl-3 col-lg-4 col-md-6">
+                <div class="card border-0 shadow-hover rounded-4 overflow-hidden h-100">
+                    <!-- Pet Image/Icon Section -->
+                    <div class="position-relative">
+                        {% if pet.photo %}
+                            <img src="{{ pet.photo.url }}" class="card-img-top" alt="{{ pet.name }}" 
+                                 style="height: 180px; object-fit: cover; object-position: center;">
+                        {% else %}
+                            <div class="bg-gradient-primary d-flex align-items-center justify-content-center" 
+                                 style="height: 180px; background: linear-gradient(135deg, #2b7a78, #4fa3a0);">
+                                <i class="fas fa-paw fa-4x text-white opacity-50"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Species Badge -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-white text-dark rounded-pill px-3 py-2 shadow-sm">
+                                <i class="fas 
+                                    {% if pet.species|lower == 'dog' %}fa-dog text-primary
+                                    {% elif pet.species|lower == 'cat' %}fa-cat text-warning
+                                    {% elif pet.species|lower == 'bird' %}fa-dove text-info
+                                    {% elif pet.species|lower == 'fish' %}fa-fish text-info
+                                    {% else %}fa-paw text-secondary{% endif %} 
+                                    me-1">
+                                </i>
+                                {{ pet.species }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Pet Details -->
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">{{ pet.name }}</h5>
+                            {% if pet.age_years %}
+                                <span class="badge bg-light text-dark rounded-pill px-2 py-1">
+                                    <i class="far fa-calendar-alt me-1"></i>{{ pet.age_years }} yrs
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Additional Info -->
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% if pet.breed %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1">
+                                    <i class="fas fa-tag me-1"></i>{{ pet.breed }}
+                                </span>
+                            {% endif %}
+                            {% if pet.weight_kg %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1">
+                                    <i class="fas fa-weight-scale me-1"></i>{{ pet.weight_kg }} kg
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-auto">
+                            <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-sm btn-primary flex-grow-1 rounded-pill">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            <a href="{% url 'trackers:tracker_dashboard' pet.pk %}" class="btn btn-sm btn-success flex-grow-1 rounded-pill">
+                                <i class="fas fa-map-marker-alt me-1"></i>Track
+                            </a>
+                            <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger rounded-pill">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Footer with Quick Stats -->
+                    <div class="card-footer bg-light bg-opacity-50 border-0 px-3 py-2">
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-muted">
+                                <i class="fas fa-calendar-check me-1"></i>
+                                {{ pet.appointments.count }} appointments
+                            </span>
+                            <span class="text-muted">
+                                <i class="fas fa-syringe me-1"></i>
+                                {{ pet.vaccinations.count }} vaccines
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- List View Alternative (Toggleable) -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-list-alt text-primary me-2"></i>Quick Overview
+                </h5>
+                <button class="btn btn-sm btn-outline-primary rounded-pill" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#listView">
+                    <i class="fas fa-table me-1"></i>Toggle List View
+                </button>
+            </div>
+            <div class="collapse" id="listView">
+                <div class="card border-0 rounded-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="rounded-start">Pet</th>
+                                        <th>Species</th>
+                                        <th>Breed</th>
+                                        <th>Age</th>
+                                        <th>Weight</th>
+                                        <th class="rounded-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pet in pets %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-paw text-primary me-2"></i>
+                                                <span class="fw-semibold">{{ pet.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ pet.species }}</td>
+                                        <td>{{ pet.breed|default:"—" }}</td>
+                                        <td>{{ pet.age_years|default:"—" }} yrs</td>
+                                        <td>{{ pet.weight_kg|default:"—" }} kg</td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-sm btn-primary rounded-pill">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger rounded-pill">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-5">
+                    <i class="fas fa-paw fa-5x text-primary"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-3">No Pets Found</h3>
+            <p class="text-muted mb-4">Looks like you haven't added any pets yet. Start by adding your first furry friend!</p>
+            <a href="{% url 'pets:pet_create' %}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow-hover">
+                <i class="fas fa-plus-circle me-2"></i>Add Your First Pet
+            </a>
+            
+            <!-- Helpful Tips -->
+            <div class="row justify-content-center mt-5">
+                <div class="col-md-8">
+                    <div class="card border-0 bg-light rounded-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb text-primary me-2"></i>Getting Started Tips:</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-camera text-primary me-2"></i>
+                                        <small>Add a photo</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-notes-medical text-primary me-2"></i>
+                                        <small>Record medical history</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar-check text-primary me-2"></i>
+                                        <small>Schedule appointments</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Custom Styles */
+    .shadow-hover {
+        transition: all 0.3s ease;
+    }
+    .shadow-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px rgba(43, 122, 120, 0.15) !important;
+    }
+
+    .bg-opacity-5 {
+        background: rgba(43, 122, 120, 0.05);
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #2b7a78, #4fa3a0);
+    }
+
+    /* Card hover effect */
+    .card {
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.4s ease-out;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Badge animations */
+    .badge {
+        transition: all 0.2s ease;
+    }
+
+    .badge:hover {
+        transform: scale(1.05);
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Table styling */
+    .table {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.8rem;
+        }
+        
+        .btn-lg {
+            padding: 0.8rem 1.5rem !important;
+            font-size: 1rem !important;
+        }
+        
+        .col-md-4.text-md-end {
+            text-align: left !important;
+        }
+        
+        .btn-primary {
+            width: 100%;
+        }
+    }
+
+    /* Loading skeleton (optional) */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Add click animation to cards
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('a') && !e.target.closest('button')) {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                }
+            });
+        });
+
+        // Filter functionality (if you want to add later)
+        // This is just a placeholder for potential enhancement
+        console.log('Pet list loaded with {{ pets|length }} pets');
+    });
+</script>
+{% endblock %}

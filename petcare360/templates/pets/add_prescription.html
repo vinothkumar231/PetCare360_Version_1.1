@@ -1,0 +1,29 @@
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-3">💊 Add Prescription</h5>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Medicine Name</label>
+        <input type="text" name="medicine_name" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Dosage</label>
+        <input type="text" name="dosage" class="form-control" placeholder="e.g., 1 tablet twice a day">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" name="start_date" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">End Date</label>
+        <input type="date" name="end_date" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Prescription</button>
+    </form>
+  </div>
+</div>

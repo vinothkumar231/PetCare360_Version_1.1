@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+ 
+<div class="container my-4">
+  <div class="card shadow-lg rounded-3">
+    <div class="card-body">
+      <h4 class="fw-bold mb-3">
+        😊 {% if form.instance.pk %} Edit Mood Log {% else %} Log Daily Mood {% endif %}
+      </h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">How is {{ pet.name }} feeling?</label>
+          {{ form.mood }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Date</label>
+          {{ form.log_date }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Additional Notes (Optional)</label>
+          {{ form.notes }}
+        </div>
+
+        <button type="submit" class="btn btn-primary rounded-pill px-4">
+          {% if form.instance.pk %} Update Mood {% else %} Log Mood {% endif %}
+        </button>
+        <a href="{% url 'pets:mood_tracker_dashboard' pet.id %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

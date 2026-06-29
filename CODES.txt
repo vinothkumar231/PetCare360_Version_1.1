@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard">
+  <h2>👋 Welcome, {{ owner.username }}!</h2>
+  <p>Email: {{ owner.email }}</p>
+
+  <div class="stats">
+    <div class="card">🐾 Total Pets: <b>{{ total_pets }}</b></div>
+    <div class="card">📊 Avg Age: <b>{{ avg_age }} yrs</b></div>
+    <div class="card">💉 Vaccinations: <b>{{ total_vaccinations }}</b></div>
+  </div>
+
+  <h3>My Pets</h3>
+  <ul>
+    {% for pet in pets %}
+      <li>
+        {% if pet.photo %}
+          <img src="{{ pet.photo.url }}" alt="{{ pet.name }}" width="80" style="border-radius:50%">
+        {% endif %}
+        <a href="{% url 'pets:pet_detail' pet.pk %}">{{ pet.name }}</a>
+        ({{ pet.species }}, {{ pet.age_years }} yrs)
+      </li>
+      <div class="card mb-3 shadow">
+  <div class="card-body">
+    <h5 class="card-title">{{ pet.name }} ({{ pet.breed }})</h5>
+    <p>Age: {{ pet.age }} | Weight: {{ pet.weight }} kg</p>
+    <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-success">
+      ➕ Add Vaccination
+    </a>
+  </div>
+</div>
+
+    {% empty %}
+      <p>No pets added yet. <a href="{% url 'pets:pet_create' %}">Add one</a></p>
+    {% endfor %}
+  </ul>
+<h3>💉 Vaccination Reminders</h3>
+<div class="row">
+    {% for r in reminders %}
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm mb-3">
+                <h5>{{ r.pet.name }}</h5>
+                <p>
+                    Vaccine: <b>{{ r.vaccine }}</b><br>
+                    Next Due: <b>{{ r.next_date }}</b><br>
+                    {% if r.days_left > 0 %}
+                        ⏳ in {{ r.days_left }} days
+                    {% elif r.days_left == 0 %}
+                        🚨 Today!
+                    {% else %}
+                        ⚠️ Overdue by {{r.abs_days}} days
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    {% empty %}
+        <p>No vaccination reminders.</p>
+    {% endfor %}
+</div>
+
+  <h3>Upcoming Vaccinations (30 days)</h3>
+  <ul>
+    {% for v in due_soon %}
+      <li>{{ v.vaccine_name }} for {{ v.pet.name }} → due {{ v.next_due }}</li>
+    {% empty %}
+      <p>No vaccinations due soon 🎉</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<style>
+.dashboard { max-width: 800px; margin: auto; }
+.stats { display:flex; gap:15px; margin:20px 0; }
+.card { flex:1; padding:15px; background:#e0f7fa; border-radius:10px; text-align:center; font-size:18px; }
+ul li { margin:8px 0; }
+</style>
+{% endblock %}
+-----------------------------
+
+owner
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold text-success">👋 Welcome, {{ owner.username }}!</h2>
+    <p class="text-muted">Email: {{ owner.email }}</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="row mb-4 text-center">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          🐾 <br>
+          <span class="fw-bold fs-5">{{ total_pets }}</span><br>
+          <small>Total Pets</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          📊 <br>
+          <span class="fw-bold fs-5">{{ avg_age }}</span><br>
+          <small>Avg Age (yrs)</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          💉 <br>
+          <span class="fw-bold fs-5">{{ total_vaccinations }}</span><br>
+          <small>Vaccinations</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Pets -->
+  <h3 class="mb-3">🐕 My Pets</h3>
+ <div class="row">
+  {% for pet in pets %}
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-lg rounded-4 border-0">
+      
+      <!-- Pet Photo -->
+      {% if pet.photo %}
+      <img src="{{ pet.photo.url }}" class="card-img-top rounded-top-4" 
+           alt="{{ pet.name }}" style="height:250px; object-fit:cover;">
+      {% else %}
+      <img src="https://via.placeholder.com/300x250?text=No+Photo" 
+           class="card-img-top rounded-top-4" alt="No photo">
+      {% endif %}
+
+      <!-- Pet Info -->
+      <div class="card-body text-center">
+        <h4 class="fw-bold text-success">{{ pet.name }}</h4>
+        <p class="text-muted mb-1">{{ pet.breed }} • {{ pet.age }} yrs</p>
+        <p class="text-muted">Weight: {{ pet.weight }} kg</p>
+         
+        <!-- Actions -->
+        <div class="d-flex justify-content-center gap-2 my-3">
+          <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-success">
+            ➕ Add Vaccination
+          </a>
+          <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-sm btn-outline-primary">
+            👁️ View
+          </a>
+          <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-info">
+            ✏️ Edit
+          </a>
+          <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger">
+            🗑️ Delete
+          </a>
+        </div>
+
+        <!-- Vaccination History -->
+        <h6 class="mt-3 text-start">💉 Vaccination History</h6>
+        {% if pet.vaccinations.all %}
+          <table class="table table-sm table-bordered mt-2">
+            <thead class="table-light">
+              <tr>
+                <th>Vaccine</th>
+                <th>Date</th>
+                <th>Next Due</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in pet.vaccinations.all|slice:":3" %}
+              <tr>
+                <td>{{ v.vaccine_name }}</td>
+                <td>{{ v.date_administered }}</td>
+                <td>{{ v.next_due|default:"-" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-muted">No vaccinations recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+
+  <!-- Vaccination Reminders -->
+  <h3 class="mt-5">💉 Vaccination Reminders</h3>
+  <div class="row">
+    {% for r in reminders %}
+      <div class="col-md-4">
+        <div class="card p-3 shadow-sm mb-3 reminder-card border-0">
+          <h5 class="fw-bold">{{ r.pet.name }}</h5>
+          <p>
+            Vaccine: <b>{{ r.vaccine }}</b><br>
+            Next Due: <b>{{ r.next_date }}</b><br>
+            {% if r.days_left > 0 %}
+              ⏳ in {{ r.days_left }} days
+            {% elif r.days_left == 0 %}
+              🚨 Today!
+            {% else %}
+              ⚠️ Overdue by {{ r.abs_days }} days
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    {% empty %}
+      <p>No vaccination reminders.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Upcoming -->
+  <h3 class="mt-5">📅 Upcoming Vaccinations (30 days)</h3>
+  <ul class="list-group">
+    {% for v in due_soon %}
+      <li class="list-group-item">
+        <b>{{ v.vaccine_name }}</b> for {{ v.pet.name }} → due <b>{{ v.next_due }}</b>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-success">No vaccinations due soon 🎉</li>
+    {% endfor %}
+  </ul>
+</div>
+<!--  Health Records: -->
+  <h6 class="mt-3 text-start">🩺 Medical History</h6>
+{% if pet.medical_history.all %}
+  <ul>
+    {% for h in pet.medical_history.all|slice:":3" %}
+      <li>{{ h.condition }} ({{ h.date_diagnosed }}) - {{ h.treatment|default:"No treatment" }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No medical records yet.</p>
+{% endif %}
+
+<h6 class="mt-3 text-start">💊 Prescriptions</h6>
+{% if pet.prescriptions.all %}
+  <ul>
+    {% for p in pet.prescriptions.all|slice:":3" %}
+      <li>{{ p.medicine_name }} → {{ p.dosage }} ({{ p.prescribed_on }})</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No prescriptions yet.</p>
+{% endif %}
+
+<!--Diet Plans-->
+<h6 class="mt-3">🥗 Diet Plan</h6>
+{% if pet.diet_plans.all %}
+  <ul>
+    {% for d in pet.diet_plans.all|slice:":3" %}
+      <li><b>{{ d.time_of_day }}</b>: {{ d.food_item }} ({{ d.quantity }}) - {{ d.notes|default:"" }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No diet plan added yet.</p>
+{% endif %}
+
+<h6 class="mt-3">⚠️ Allergies</h6>
+{% if pet.allergies.all %}
+  <ul>
+    {% for a in pet.allergies.all %}
+      <li>{{ a.allergen }} → {{ a.severity }} ({{ a.reaction|default:"No reaction noted" }})</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No allergies recorded.</p>
+{% endif %}
+
+<style>
+  .stat-card { 
+    background: #e0f7fa; 
+    border-radius: 15px; 
+  }
+  .reminder-card { 
+    background: #f1f8e9; 
+    border-radius: 12px; 
+  }
+  .card-body h5 { color: #2e7d32; }
+  .btn-success { background: #4caf50; border: none; }
+  .btn-outline-primary { border-radius: 20px; }
+  table { font-size: 14px; }
+</style>
+
+{% endblock %}
+--------------
+new owner
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- Owner Welcome -->
+  <div class="mb-4">
+    <h2 class="fw-bold">👋 Welcome, {{ owner.username }}!</h2>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          🐾 <h5 class="fw-bold">{{ total_pets }}</h5>
+          <p class="text-muted">Total Pets</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          📊 <h5 class="fw-bold">{{ avg_age }} yrs</h5>
+          <p class="text-muted">Average Age</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          💉 <h5 class="fw-bold">{{ total_vaccinations }}</h5>
+          <p class="text-muted">Total Vaccinations</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pet Cards -->
+  <h3 class="mb-3 fw-bold">My Pets</h3>
+  <div class="row">
+    {% for pet in pets %}
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body text-center">
+            <!-- Pet Photo -->
+            {% if pet.photo %}
+              <img src="{{ pet.photo.url }}" class="rounded-circle mb-3" 
+                   style="width:120px; height:120px; object-fit:cover;">
+            {% else %}
+              <div class="rounded-circle bg-light mb-3 d-flex align-items-center justify-content-center"
+                   style="width:120px; height:120px;">🐶</div>
+            {% endif %}
+
+            <!-- Pet Info -->
+            <h4 class="fw-bold text-success">{{ pet.name }}</h4>
+            <p class="text-muted">{{ pet.breed }} | {{ pet.age }} yrs | {{ pet.weight }} kg</p>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center gap-2 my-3">
+              <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-success">
+                ➕ Add Vaccination
+              </a>
+              <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#petModal{{ pet.id }}">
+                👁️ View
+              </button>
+              <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-info">
+                ✏️ Edit
+              </a>
+              <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger">
+                🗑️ Delete
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal for Pet Profile -->
+      <div class="modal fade" id="petModal{{ pet.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header bg-light">
+              <h5 class="modal-title">🐾 {{ pet.name }}'s Profile</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+              <div class="text-center mb-3">
+                {% if pet.photo %}
+                  <img src="{{ pet.photo.url }}" class="rounded-circle mb-3" 
+                       style="width:120px; height:120px; object-fit:cover;">
+                {% endif %}
+                <h4 class="fw-bold text-success">{{ pet.name }}</h4>
+                <p class="text-muted">{{ pet.breed }} | {{ pet.age }} yrs | {{ pet.weight }} kg</p>
+              </div>
+
+              <!-- Tabs -->
+              <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#vaccinations{{ pet.id }}">💉 Vaccinations</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#history{{ pet.id }}">📋 Medical History</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#prescriptions{{ pet.id }}">💊 Prescriptions</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#diet{{ pet.id }}">🥗 Diet</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#allergies{{ pet.id }}">⚠️ Allergies</a></li>
+              </ul>
+
+              <div class="tab-content p-3">
+                <!-- Vaccinations -->
+                <div class="tab-pane fade show active" id="vaccinations{{ pet.id }}">
+                  {% if pet.vaccinations.all %}
+                    <table class="table table-sm">
+                      <thead><tr><th>Vaccine</th><th>Date</th><th>Next Due</th></tr></thead>
+                      <tbody>
+                        {% for v in pet.vaccinations.all %}
+                          <tr>
+                            <td>{{ v.vaccine_name }}</td>
+                            <td>{{ v.date_given }}</td>
+                            <td>{{ v.next_due }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  {% else %}
+                    <p>No vaccinations yet. <a href="{% url 'pets:add_vaccination_pet' pet.id %}">Add one</a></p>
+                  {% endif %}
+                </div>
+
+                <!-- Medical History -->
+                <div class="tab-pane fade" id="history{{ pet.id }}">
+                  {% if pet.medicalhistory_set.all %}
+                    <ul>
+                      {% for h in pet.medicalhistory_set.all %}
+                        <li><b>{{ h.condition }}</b> ({{ h.date_diagnosed }}) → {{ h.treatment }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p>No medical history yet.</p>
+                  {% endif %}
+                </div>
+
+                <!-- Prescriptions -->
+                <div class="tab-pane fade" id="prescriptions{{ pet.id }}">
+                  {% if pet.prescription_set.all %}
+                    <ul>
+                      {% for p in pet.prescription_set.all %}
+                        <li>{{ p.medicine_name }} ({{ p.dosage }}) - {{ p.prescribed_on }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p>No prescriptions yet.</p>
+                  {% endif %}
+                </div>
+
+                <!-- Diet Plan -->
+                <div class="tab-pane fade" id="diet{{ pet.id }}">
+                  {% if pet.dietplan_set.all %}
+                    <ul>
+                      {% for d in pet.dietplan_set.all %}
+                        <li>{{ d.food_item }} - {{ d.quantity }} ({{ d.time_of_day }})</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p>No diet plan added yet.</p>
+                  {% endif %}
+                </div>
+
+                <!-- Allergies -->
+                <div class="tab-pane fade" id="allergies{{ pet.id }}">
+                  {% if pet.allergy_set.all %}
+                    <ul>
+                      {% for a in pet.allergy_set.all %}
+                        <li>{{ a.allergen }} → {{ a.reaction }} ({{ a.severity }})</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p>No allergies recorded.</p>
+                  {% endif %}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% empty %}
+      <p>No pets yet. <a href="{% url 'pets:pet_create' %}">Add one</a></p>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .stat-card { 
+    background: #e0f7fa; 
+    border-radius: 15px; 
+  }
+  .reminder-card { 
+    background: #f1f8e9; 
+    border-radius: 12px; 
+  }
+  .card-body h5 { color: #2e7d32; }
+  .btn-success { background: #4caf50; border: none; }
+  .btn-outline-primary { border-radius: 20px; }
+  table { font-size: 14px; }
+</style>
+
+{% endblock %}
+------------------------
+------------15-09-2025---------
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-4">
+  <h2 class="mb-4">👋 Welcome, {{ owner.username }}!</h2>
+
+  <div class="row">
+    {% for pet in pets %}
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-lg rounded-3">
+          <!-- Pet Photo -->
+          {% if pet.photo %}
+            <img src="{{ pet.photo.url }}" class="card-img-top img-fluid" 
+                 alt="{{ pet.name }}" style="height:250px; object-fit:cover; cursor:pointer"
+                 data-bs-toggle="modal" data-bs-target="#petProfileModal{{ pet.id }}">
+          {% endif %}
+
+          <div class="card-body">
+            <!-- Pet Info -->
+            <h4 class="card-title text-success">{{ pet.name }}</h4>
+            <p class="text-muted mb-1">
+              {{ pet.breed }} | {{ pet.age }} yrs | {{ pet.weight }} kg
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center gap-2 my-3">
+              <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-success">➕ Vaccination</a>
+              <a href="{% url 'pets:add_history_pet' pet.id %}" class="btn btn-info">+ Medical History</a>
+              <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-sm btn-outline-primary">👁️ View</a>
+              <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-info">✏️ Edit</a>
+              <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger">🗑️ Delete</a>
+            </div>
+
+            <!-- Tabs for Records -->
+            <ul class="nav nav-tabs" id="petTabs{{ pet.id }}" role="tablist">
+              <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vaccinations{{ pet.id }}">💉 Vaccinations</button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#medical{{ pet.id }}">🏥 Medical</button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#prescriptions{{ pet.id }}">💊 Prescriptions</button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#diet{{ pet.id }}">🥗 Diet</button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#allergies{{ pet.id }}">⚠️ Allergies</button></li>
+            </ul>
+
+            <div class="tab-content p-3 border border-top-0 rounded-bottom">
+              <!-- Vaccinations -->
+              <div class="tab-pane fade show active" id="vaccinations{{ pet.id }}">
+                {% if pet.vaccinations.all %}
+                  <ul>
+                    {% for v in pet.vaccinations.all|slice:":3" %}
+                      <li>{{ v.vaccine_name }} → {{ v.next_due }}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No vaccinations yet.</p>
+                {% endif %}
+              </div>
+
+              <!-- Medical History -->
+              <div class="tab-pane fade" id="medical{{ pet.id }}">
+                {% if pet.medicalhistory_set.all %}
+                  <ul>
+                    {% for m in pet.medicalhistory_set.all|slice:":2" %}
+                      <li>{{ m.condition }} ({{ m.date_diagnosed }})</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No medical records yet.</p>
+                {% endif %}
+              </div>
+
+              <!-- Prescriptions -->
+              <div class="tab-pane fade" id="prescriptions{{ pet.id }}">
+                {% if pet.prescription_set.all %}
+                  <ul>
+                    {% for p in pet.prescription_set.all|slice:":2" %}
+                      <li>{{ p.medicine_name }} ({{ p.dosage }})</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No prescriptions yet.</p>
+                {% endif %}
+              </div>
+
+              <!-- Diet -->
+              <div class="tab-pane fade" id="diet{{ pet.id }}">
+                {% if pet.dietplan_set.all %}
+                  <ul>
+                    {% for d in pet.dietplan_set.all|slice:":2" %}
+                      <li>{{ d.food_item }} ({{ d.time_of_day }})</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No diet plan yet.</p>
+                {% endif %}
+              </div>
+
+              <!-- Allergies -->
+              <div class="tab-pane fade" id="allergies{{ pet.id }}">
+                {% if pet.allergy_set.all %}
+                  <ul>
+                    {% for a in pet.allergy_set.all|slice:":2" %}
+                      <li>{{ a.allergen }} → {{ a.severity }}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>No allergies recorded.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Pet Profile -->
+      <div class="modal fade" id="petProfileModal{{ pet.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ pet.name }}'s Profile</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <p><b>Breed:</b> {{ pet.breed }}</p>
+              <p><b>Age:</b> {{ pet.age }} years</p>
+              <p><b>Weight:</b> {{ pet.weight }} kg</p>
+              <p><b>Owner:</b> {{ owner.username }}</p>
+              <hr>
+              <h6>Vaccination History</h6>
+              <ul>
+                {% for v in pet.vaccinations.all %}
+                  <li>{{ v.vaccine_name }} - Next: {{ v.next_due }}</li>
+                {% empty %}
+                  <p>No vaccinations yet.</p>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+-----------------------------------------
+
+
+
+

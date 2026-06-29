@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Record for {{ record.pet.name }}</h2>
+<p><strong>Type:</strong> {{ record.record_type }}</p>
+<p><strong>Condition:</strong> {{ record.condition }}</p>
+<p><strong>Description:</strong> {{ record.text }}</p>
+<p><strong>Created at:</strong> {{ record.created_at|date:"Y-m-d H:i" }}</p>
+{% endblock %}

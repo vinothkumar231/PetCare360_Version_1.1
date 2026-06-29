@@ -1,0 +1,635 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PetCare 360 - Login</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #2b7a78;
+      --primary-light: #4fa3a0;
+      --bg-gradient-start: #d9fdd3;
+      --bg-gradient-end: #cce7ff;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    /* Compact Login Card */
+    .login-card {
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 15px 30px rgba(43, 122, 120, 0.12);
+      padding: 1.8rem 1.5rem;
+      transition: transform 0.2s ease;
+      max-width: 400px;
+      margin: 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .login-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 35px rgba(43, 122, 120, 0.15);
+    }
+
+    /* Smaller Brand Section */
+    .brand-wrapper {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .brand-icon {
+      font-size: 2.2rem;
+      color: var(--primary);
+      background: rgba(43, 122, 120, 0.1);
+      width: 70px;
+      height: 70px;
+      line-height: 70px;
+      border-radius: 20px;
+      margin: 0 auto 0.8rem;
+    }
+
+    .brand {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2c3e50;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      color: var(--primary);
+    }
+
+    .brand-tagline {
+      color: #6c757d;
+      font-size: 0.8rem;
+    }
+
+    /* Compact Form */
+    .form-label {
+      font-weight: 500;
+      color: #2c3e50;
+      font-size: 0.85rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .input-group {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid #e9ecef;
+      background: white;
+      transition: all 0.2s ease;
+    }
+
+    .input-group:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(43, 122, 120, 0.1);
+    }
+
+    .input-group-text {
+      background: white;
+      border: none;
+      color: var(--primary);
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      border: none;
+      padding: 0.6rem 0.8rem 0.6rem 0;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+
+    .form-control:focus {
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .form-control::placeholder {
+      color: #adb5bd;
+      font-size: 0.85rem;
+    }
+
+    /* Password Toggle */
+    .password-toggle {
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      background: white;
+      border: none;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .password-toggle:hover {
+      color: var(--primary);
+    }
+
+    /* Login Button - Smaller */
+    .btn-login {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0.8rem;
+      border-radius: 14px;
+      border: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(43, 122, 120, 0.2);
+    }
+
+    .btn-login i {
+      margin-right: 6px;
+      font-size: 0.9rem;
+    }
+
+    /* Links - Compact */
+    .text-link {
+      color: var(--primary);
+      font-weight: 500;
+      text-decoration: none;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .text-link:hover {
+      color: #205d5c;
+    }
+
+    /* Divider - Slim */
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 1.2rem 0;
+      color: #6c757d;
+      font-size: 0.8rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .divider span {
+      padding: 0 0.8rem;
+    }
+
+    /* Floating Error Popup (Toast) */
+    .floating-alert {
+      background: white;
+      border-left: 4px solid #dc3545;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0.5rem;
+      min-width: 260px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .floating-alert.animate-toast {
+      animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .animate-toast-out {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+
+    .floating-alert .icon-wrapper {
+      color: #dc3545;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .floating-alert .message-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .floating-alert .message-title {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .floating-alert .message-text {
+      color: #6c757d;
+      font-size: 0.85rem;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Checkbox - Smaller */
+    .form-check {
+      min-height: auto;
+      margin-bottom: 0;
+    }
+
+    .form-check-input {
+      width: 1rem;
+      height: 1rem;
+      margin-top: 0;
+      border: 1.5px solid #dee2e6;
+    }
+
+    .form-check-label {
+      font-size: 0.85rem;
+      color: #495057;
+      margin-left: 0.2rem;
+    }
+
+    /* Remember Me & Forgot Password Row */
+    .remember-forgot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1rem 0 1.2rem;
+    }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .security-badge {
+      color: #6c757d;
+      font-size: 0.75rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      body {
+        padding: 0.5rem;
+      }
+
+      .login-card {
+        padding: 1.5rem 1.2rem;
+        border-radius: 24px;
+      }
+
+      .brand-icon {
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        font-size: 2rem;
+      }
+
+      .brand {
+        font-size: 1.6rem;
+      }
+
+      .remember-forgot {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: flex-start;
+      }
+    }
+
+    /* Landscape mode on small devices */
+    @media (max-height: 600px) and (orientation: landscape) {
+      body {
+        padding: 0.5rem;
+      }
+
+      .login-card {
+        padding: 1.2rem;
+      }
+
+      .brand-wrapper {
+        margin-bottom: 1rem;
+      }
+
+      .brand-icon {
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .mb-4 {
+        margin-bottom: 0.8rem !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid p-0">
+    <div class="row justify-content-center mx-0">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+        <div class="login-card">
+          <!-- Brand Section - Compact -->
+          <div class="brand-wrapper">
+            <div class="brand-icon">
+              <i class="fas fa-paw"></i>
+            </div>
+            <div class="brand">
+              PetCare <span>360</span>
+            </div>
+            <div class="brand-tagline">
+              Caring for your pets
+            </div>
+          </div>
+
+          <!-- Error Messages Container -->
+          <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1050;">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="floating-alert animate-toast">
+              <div class="icon-wrapper">
+                <i class="fas fa-times-circle"></i>
+              </div>
+              <div class="message-content">
+                <span class="message-title">Login Failed</span>
+                <span class="message-text">{{ message }}</span>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+          </div>
+
+          {% if already_logged_in %}
+          <div class="modal fade show" tabindex="-1"
+            style="display: block; background-color: rgba(0, 0, 0, 0.4); z-index: 1060; backdrop-filter: blur(2px);"
+            aria-modal="true" role="dialog">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content p-4"
+                style="border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: none;">
+                <div class="modal-body text-center p-0">
+                  <h4 class="mb-3" style="font-weight: 400; font-size: 1.6rem; color: #333;">User Already Logged In</h4>
+                  <hr class="mb-3" style="opacity: 0.1;">
+                  <p class="mb-4" style="font-size: 1rem; color: #222;">Do you want to force logout and login again ?
+                  </p>
+                  <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'pets:logout' %}" class="btn bg-white text-dark w-50 py-2"
+                      style="border-radius: 6px; border: 1px solid #ddd; font-weight: 500;">Yes</a>
+                    <a href="{% url 'pets:owner_dashboard' %}" class="btn text-white w-50 py-2"
+                      style="border-radius: 6px; background-color: #333; font-weight: 500;">No</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Login Form -->
+          <form method="post" novalidate autocomplete="off">
+            {% csrf_token %}
+
+            <!-- Username Field -->
+            <div class="mb-3">
+              <label for="username" class="form-label">
+                <i class="fas fa-user"></i> Username
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user-circle"></i>
+                </span>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter username"
+                  autocomplete="off" required>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock"></i> Password
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-key"></i>
+                </span>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password"
+                  autocomplete="new-password" required>
+                <span class="password-toggle" onclick="togglePassword()">
+                  <i class="far fa-eye" id="toggleIcon"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="remember-forgot">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">
+                  Remember me
+                </label>
+              </div>
+              <a href="{% url 'pets:forgot_password' %}" class="text-link">
+                Forgot? <i class="fas fa-arrow-right fa-xs"></i>
+              </a>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn-login">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="divider">
+            <span>New here?</span>
+          </div>
+
+          <!-- Sign Up Link -->
+          <div class="login-footer">
+            <a href="{% url 'pets:signup' %}" class="text-link">
+              <i class="fas fa-user-plus"></i> Create account
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Clear all form fields on page load
+    window.addEventListener('load', function () {
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+
+      if (usernameInput) usernameInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+    });
+
+    // Password visibility toggle
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('toggleIcon');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+      }
+    }
+
+    // Auto-focus
+    document.getElementById('username').focus();
+
+    function autoDismissToast(toastElement) {
+      setTimeout(function () {
+        if (toastElement && document.body.contains(toastElement)) {
+          toastElement.classList.add('animate-toast-out');
+          setTimeout(() => toastElement.remove(), 400);
+        }
+      }, 3000);
+    }
+
+    // Dismiss any server-rendered toasts
+    document.querySelectorAll('.floating-alert').forEach(popup => {
+      autoDismissToast(popup);
+    });
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'floating-alert animate-toast';
+      toast.innerHTML = `
+        <div class="icon-wrapper"><i class="fas fa-times-circle"></i></div>
+        <div class="message-content">
+          <span class="message-title">Login Failed</span>
+          <span class="message-text">${message}</span>
+        </div>
+      `;
+      if (container) container.appendChild(toast);
+      autoDismissToast(toast);
+    }
+
+    // Reset button state if page is loaded from bfcache (back button)
+    window.addEventListener('pageshow', function (event) {
+      const submitBtn = document.querySelector('form button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Handle form submission via AJAX
+    document.querySelector('form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(this);
+
+      try {
+        const fetchUrl = "{% url 'pets:login' %}";
+        const response = await fetch(fetchUrl, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        });
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const data = await response.json();
+          if (response.ok && data.success) {
+            window.location.href = data.redirect_url;
+          } else {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            showToast(data.message || 'Invalid username or password');
+          }
+        } else {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          if (response.status === 401 || response.status === 403) {
+            showToast('Invalid username or password');
+          } else {
+            showToast('Unexpected server response. Please try again.');
+          }
+        }
+      } catch (err) {
+        console.error("Login fetch error:", err);
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        showToast('Network error, please try again.');
+      }
+    });
+
+    // Remember me functionality
+    document.addEventListener('DOMContentLoaded', function () {
+      const rememberCheck = document.getElementById('rememberMe');
+      const usernameInput = document.getElementById('username');
+
+      // Check if there's saved username
+      const savedUsername = localStorage.getItem('rememberedUsername');
+      if (savedUsername && rememberCheck.checked) {
+        usernameInput.value = savedUsername;
+      }
+
+      // Save username when form is submitted and remember me is checked
+      document.querySelector('form').addEventListener('submit', function () {
+        if (rememberCheck.checked && usernameInput.value) {
+          localStorage.setItem('rememberedUsername', usernameInput.value);
+        } else {
+          localStorage.removeItem('rememberedUsername');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

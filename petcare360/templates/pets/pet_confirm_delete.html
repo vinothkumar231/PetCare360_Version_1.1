@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm border-0" style="border-radius: 16px;">
+    <div class="card-body text-center p-5">
+      <h4 class="fw-bold mb-3 text-danger">⚠️ Delete Pet</h4>
+      <p>
+        Are you sure you want to delete the pet 
+        <strong>{{ pet.name }}</strong>?
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger px-4 rounded-pill">Yes, Delete</button>
+        <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

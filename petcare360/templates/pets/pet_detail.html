@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ pet.name }} ({{ pet.species }})</h2>
+<p>Breed: {{ pet.breed }}</p>
+<p>Age: {{ pet.age_years }} years</p>
+<p>Weight: {{ pet.weight_kg }} kg</p>
+{% if pet.photo %}
+<img src="{{ pet.photo.url }}" alt="{{ pet.name }}" width="200">
+{% endif %}
+<p>Notes: {{ pet.notes }}</p>
+
+{% comment %} <h3>Vaccination History</h3>
+<ul>
+  {% for v in vaccinations %}
+  <li>{{ v.vaccine_name }} - {{ v.date_administered }} (Next: {{ v.next_due }})</li>
+  {% empty %}
+  <p>No vaccination records.</p>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'pets:pet_update' pet.pk %}">✏️ Edit</a> |
+<a href="{% url 'pets:pet_delete' pet.pk %}">🗑️ Delete</a> {% endcomment %}
+<!-- Vaccination History Section -->
+<div class="card mt-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">💉 Vaccination History</h5>
+    <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-success">
+      + Add Vaccination
+    </a>
+  </div>
+  <div class="card-body">
+    {% if pet.vaccinations.all %}
+    <ul class="list-group">
+      {% for vac in pet.vaccinations.all %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <b>{{ vac.vaccine_name }}</b> - {{ vac.date_administered }}
+          {% if vac.next_due %}
+          <span class="text-muted">(Next due: {{ vac.next_due }})</span>
+          {% endif %}
+          {% if vac.notes %}
+          <p class="small mb-0"><i>{{ vac.notes }}</i></p>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'pets:edit_vaccination' vac.id %}" class="btn btn-sm btn-primary">Edit</a>
+          <a href="{% url 'pets:delete_vaccination' vac.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">No vaccinations recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- Medical History Section -->
+<div class="card mt-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">🏥 Medical History</h5>
+    <a href="{% url 'pets:add_medical_record' pet.id %}" class="btn btn-sm btn-success">
+      + Add Medical Record
+    </a>
+  </div>
+  <div class="card-body">
+    {% if pet.medical_history.all %}
+    <ul class="list-group">
+      {% for record in pet.medical_history.all %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <b>{{ record.condition }}</b> - Diagnosed on {{ record.date_diagnosed }}
+          {% if record.treatment %}
+          <p class="small mb-0"><b>Treatment:</b> {{ record.treatment }}</p>
+          {% endif %}
+          {% if record.description %}
+          <p class="small mb-0"><i>{{ record.description }}</i></p>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'pets:edit_history' record.id %}" class="btn btn-sm btn-primary">Edit</a>
+          <a href="{% url 'pets:delete_history' record.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">No medical history yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Prescriptions Section -->
+<div class="card mt-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">💊 Prescriptions</h5>
+    <a href="{% url 'pets:add_prescription' pet.id %}" class="btn btn-sm btn-success">
+      + Add Prescription
+    </a>
+  </div>
+  <div class="card-body">
+    {% if pet.prescriptions.all %}
+    <ul class="list-group">
+      {% for prescription in pet.prescriptions.all %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <b>{{ prescription.medicine_name }}</b> - {{ prescription.dosage }}
+          <span class="text-muted">({{ prescription.prescribed_on }})</span>
+          {% if prescription.notes %}
+          <p class="small mb-0"><i>{{ prescription.notes }}</i></p>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'pets:edit_prescription' prescription.id %}" class="btn btn-sm btn-primary">Edit</a>
+          <a href="{% url 'pets:delete_prescription' prescription.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">No prescriptions yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- Diet Plans Section (Upgraded to AI Planner) -->
+<div class="card mt-4 shadow-sm border-success">
+  <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">🥗 AI Diet & Nutrition Planner</h5>
+  </div>
+  <div class="card-body text-center">
+    <p class="text-muted">Smart food suggestions, eating habits tracking, and nutrition balance 🤖✨</p>
+    <a href="{% url 'pets:diet_planner_dashboard' pet.id %}" class="btn btn-success btn-lg mt-2">
+      Access Diet Planner
+    </a>
+  </div>
+</div>
+
+<!-- Mood Tracker Section -->
+<div class="card mt-4 shadow-sm border-warning">
+  <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">😊 Pet Mood & Emotion Tracker</h5>
+  </div>
+  <div class="card-body text-center">
+    <p class="text-muted">Track daily moods, get engagement ideas, and monitor emotional health 🧠✨</p>
+    <a href="{% url 'pets:mood_tracker_dashboard' pet.id %}" class="btn btn-warning btn-lg mt-2 fw-bold">
+      Access Mood Tracker
+    </a>
+  </div>
+</div>
+
+<!-- Vet Connect Section -->
+<div class="card mt-4 shadow-sm border-primary">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">🩺 Smart Vet Connect</h5>
+  </div>
+  <div class="card-body text-center">
+    <p class="text-muted">Instantly share pet health reports with nearby veterinarians and request quick consultations 🩺🚀</p>
+    <a href="{% url 'pets:vet_connect_dashboard' pet.id %}" class="btn btn-primary btn-lg mt-2 fw-bold">
+      Access Vet Connect
+    </a>
+  </div>
+</div>
+
+<!-- Allergies Section -->
+<div class="card mt-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">🤧 Allergies</h5>
+    <a href="{% url 'pets:add_allergy' pet.id %}" class="btn btn-sm btn-success">+ Add Allergy</a>
+
+  </div>
+  <div class="card-body">
+    {% if pet.allergies.all %}
+    <ul class="list-group">
+      {% for allergy in pet.allergies.all %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <b>{{ allergy.allergen }}</b> - Severity: {{ allergy.severity }}
+          {% if allergy.reaction %}
+          <p class="small mb-0"><i>{{ allergy.reaction }}</i></p>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'pets:edit_allergy' allergy.id %}" class="btn btn-sm btn-primary">Edit</a>
+          <a href="{% url 'pets:delete_allergy' allergy.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">No allergies recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

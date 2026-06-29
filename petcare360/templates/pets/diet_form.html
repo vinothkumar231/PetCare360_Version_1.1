@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+ 
+<div class="container my-4">
+  <div class="card shadow-lg rounded-3">
+    <div class="card-body">
+      <h4 class="fw-bold mb-3">
+        🥗 {% if form.instance.pk %} Edit Diet Plan {% else %} Add Diet Plan {% endif %}
+      </h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Food Type</label>
+          {{ form.food_type }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Food Item</label>
+          {{ form.food_item }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Quantity</label>
+          {{ form.quantity }}
+          <div class="form-text">e.g., 200g, 1 cup</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Time of Day</label>
+          {{ form.time_of_day }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Meal Date</label>
+          {{ form.meal_date }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Notes</label>
+          {{ form.notes }}
+        </div>
+
+        <button type="submit" class="btn btn-success">
+          {% if form.instance.pk %} Update {% else %} Save {% endif %}
+        </button>
+        <a href="{% url 'pets:diet_planner_dashboard' pet.id %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+ 

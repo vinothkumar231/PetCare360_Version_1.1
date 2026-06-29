@@ -1,0 +1,549 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container py-4">
+    <!-- Header Section with Breadcrumb -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'pets:owner_dashboard' %}" class="text-decoration-none"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'appointments:appointment_list' %}" class="text-decoration-none"><i class="fas fa-calendar-check me-1"></i>Appointments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Manage Appointment</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-calendar-edit fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h2 class="display-6 fw-bold text-dark mb-1">Manage Appointment</h2>
+                    <p class="text-muted lead mb-0">Update prescription, follow-up date, and appointment status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <!-- Main Management Card -->
+            <div class="card border-0 shadow-hover rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+                <!-- Appointment Summary Card -->
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="bg-primary bg-opacity-5 rounded-4 p-3 mb-3" style="background: rgba(58, 123, 122, 0.05);">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-clipboard-list text-primary me-2"></i>Appointment Summary</h5>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-paw text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Pet</small>
+                                        <span class="fw-semibold">{{ appointment.pet_name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Owner</small>
+                                        <span class="fw-semibold">{{ appointment.owner.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-calendar-alt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Date & Time</small>
+                                        <span class="fw-semibold">{{ appointment.date }} at {{ appointment.time }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Section -->
+                <div class="card-body p-4">
+                    <form method="POST" id="manageAppointmentForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Prescription Field -->
+                        <div class="mb-4">
+                            <label for="prescription" class="form-label fw-semibold text-dark">
+                                <i class="fas fa-prescription-bottle text-primary me-2"></i>Prescription
+                            </label>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="fas fa-notes-medical text-primary"></i>
+                                    </span>
+                                    <textarea name="prescription" id="prescription" rows="4" 
+                                              class="form-control ps-2 border-start-0 rounded-end-3"
+                                              placeholder="Enter prescription details, dosage instructions, and any special notes...">{{ appointment.prescription }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Include medication name, dosage, frequency, and duration
+                            </div>
+                        </div>
+
+                        <!-- Follow-up Date Field -->
+                        <div class="mb-4">
+                            <label for="follow_up_date" class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-plus text-primary me-2"></i>Follow-up Date
+                            </label>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="fas fa-calendar-alt text-primary"></i>
+                                    </span>
+                                    <input type="date" name="follow_up_date" id="follow_up_date" 
+                                           class="form-control ps-2 border-start-0 rounded-end-3"
+                                           value="{{ appointment.follow_up_date|date:'Y-m-d'|default:'' }}"
+                                           min="{% now 'Y-m-d' %}">
+                                </div>
+                            </div>
+                            <div class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Set a follow-up date if another visit is needed
+                            </div>
+                        </div>
+
+                        <!-- Status Field -->
+                        <div class="mb-4">
+                            <label for="status" class="form-label fw-semibold text-dark">
+                                <i class="fas fa-tag text-primary me-2"></i>Appointment Status
+                            </label>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="fas fa-clock text-primary"></i>
+                                    </span>
+                                    <select name="status" id="status" 
+                                            class="form-control form-select ps-2 border-start-0 rounded-end-3">
+                                        <option value="pending" {% if appointment.status == 'pending' %}selected{% endif %}>
+                                            ⏳ Pending
+                                        </option>
+                                        <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>
+                                            ✅ Confirmed
+                                        </option>
+                                        <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>
+                                            🎉 Completed
+                                        </option>
+                                        <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>
+                                            ❌ Cancelled
+                                        </option>
+                                        <option value="rescheduled" {% if appointment.status == 'rescheduled' %}selected{% endif %}>
+                                            🔄 Rescheduled
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Update the current status of this appointment
+                            </div>
+                        </div>
+
+                        <!-- Current Status Badge Preview -->
+                        <div class="bg-light rounded-3 p-3 mb-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-semibold">Current Status:</span>
+                                {% if appointment.status == 'pending' %}
+                                    <span class="badge bg-warning-subtle text-warning px-4 py-2 rounded-pill">
+                                        <i class="fas fa-clock me-1"></i>{{ appointment.get_status_display|default:'Pending' }}
+                                    </span>
+                                {% elif appointment.status == 'confirmed' %}
+                                    <span class="badge bg-success-subtle text-success px-4 py-2 rounded-pill">
+                                        <i class="fas fa-check-circle me-1"></i>{{ appointment.get_status_display|default:'Confirmed' }}
+                                    </span>
+                                {% elif appointment.status == 'completed' %}
+                                    <span class="badge bg-info-subtle text-info px-4 py-2 rounded-pill">
+                                        <i class="fas fa-check-double me-1"></i>{{ appointment.get_status_display|default:'Completed' }}
+                                    </span>
+                                {% elif appointment.status == 'cancelled' %}
+                                    <span class="badge bg-danger-subtle text-danger px-4 py-2 rounded-pill">
+                                        <i class="fas fa-times-circle me-1"></i>{{ appointment.get_status_display|default:'Cancelled' }}
+                                    </span>
+                                {% elif appointment.status == 'rescheduled' %}
+                                    <span class="badge bg-primary-subtle text-primary px-4 py-2 rounded-pill">
+                                        <i class="fas fa-calendar-alt me-1"></i>{{ appointment.get_status_display|default:'Rescheduled' }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-4 py-2 rounded-pill">
+                                        {{ appointment.status|title }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-3 justify-content-end mt-5">
+                            <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-hover" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Additional Information Footer -->
+                <div class="card-footer bg-light bg-opacity-50 border-0 p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                    <i class="fas fa-history text-primary small"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Last Updated</small>
+                                    <span class="fw-semibold">{{ appointment.updated_at|default:"Today" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                    <i class="fas fa-bell text-primary small"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Notifications</small>
+                                    <span class="fw-semibold">Owner will be notified of changes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card border-0 bg-light rounded-4 mt-4">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lightbulb text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Quick Actions</h6>
+                                <p class="small text-muted mb-0">Manage this appointment efficiently</p>
+                            </div>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    .shadow-hover {
+        transition: all 0.3s ease;
+    }
+    .shadow-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px rgba(58, 123, 122, 0.15) !important;
+    }
+
+    /* Form input styling */
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4fa3a0;
+        box-shadow: 0 0 0 0.25rem rgba(79, 163, 160, 0.15);
+    }
+
+    /* Input group styling */
+    .input-group-text {
+        border: 2px solid #e9ecef;
+        background: #f8f9fa;
+        color: #3a7b7a;
+        padding: 0.75rem 1rem;
+    }
+
+    .input-group .form-control,
+    .input-group .form-select {
+        border-left: none;
+    }
+
+    .input-group .form-control:focus,
+    .input-group .form-select:focus {
+        border-left: none;
+    }
+
+    /* Textarea specific */
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* Button styling */
+    .btn {
+        border-radius: 50px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3a7b7a, #4fa3a0);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2a5f5e, #3a7b7a);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(58, 123, 122, 0.3);
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #dee2e6;
+        color: #6c757d;
+        background: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+        background: #f8f9fa;
+        border-color: #6c757d;
+        color: #495057;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #3a7b7a;
+        color: #3a7b7a;
+        background: transparent;
+    }
+
+    .btn-outline-primary:hover {
+        background: #3a7b7a;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 2px solid #dc3545;
+        color: #dc3545;
+        background: transparent;
+    }
+
+    .btn-outline-danger:hover {
+        background: #dc3545;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Badge subtles */
+    .bg-primary-subtle { background: rgba(58, 123, 122, 0.1); color: #2a5f5e; }
+    .bg-success-subtle { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-warning-subtle { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-danger-subtle { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-info-subtle { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-secondary-subtle { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+    /* Breadcrumb styling */
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #3a7b7a;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #2a5f5e;
+    }
+
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.8rem;
+        }
+        
+        .d-flex.gap-3 {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            margin-left: 0 !important;
+        }
+        
+        .card-footer .row {
+            text-align: center;
+        }
+        
+        .card-footer .d-flex {
+            justify-content: center;
+        }
+    }
+
+    /* Loading state */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-loading:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- Extra JavaScript for form enhancement -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form submission loading state
+        const form = document.getElementById('manageAppointmentForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(event) {
+            submitBtn.classList.add('btn-loading');
+            submitBtn.innerHTML = 'Saving...';
+        });
+
+        // Set minimum date for follow-up to today
+        const followUpDate = document.getElementById('follow_up_date');
+        if (followUpDate) {
+            const today = new Date().toISOString().split('T')[0];
+            followUpDate.setAttribute('min', today);
+        }
+
+        // Auto-save indicator (optional)
+        let hasChanges = false;
+        const formInputs = document.querySelectorAll('textarea, input, select');
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                hasChanges = true;
+            });
+        });
+
+        // Warn before leaving if there are unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasChanges) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
+
+        // Remove warning when form is submitted
+        form.addEventListener('submit', function() {
+            hasChanges = false;
+        });
+
+        // Character counter for prescription (optional)
+        const prescription = document.getElementById('prescription');
+        if (prescription) {
+            const counter = document.createElement('small');
+            counter.className = 'text-muted mt-1 d-block';
+            counter.innerHTML = `<i class="fas fa-text me-1"></i><span id="charCount">${prescription.value.length}</span> characters`;
+            prescription.parentElement.after(counter);
+
+            prescription.addEventListener('input', function() {
+                document.getElementById('charCount').textContent = this.value.length;
+            });
+        }
+
+        // Status change preview
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                const previewBadge = document.querySelector('.bg-light .badge');
+                if (previewBadge) {
+                    const selectedOption = this.options[this.selectedIndex].text;
+                    const statusValue = this.value;
+                    
+                    let badgeClass = 'bg-secondary-subtle text-secondary';
+                    let icon = 'fa-clock';
+                    
+                    if (statusValue === 'pending') {
+                        badgeClass = 'bg-warning-subtle text-warning';
+                        icon = 'fa-clock';
+                    } else if (statusValue === 'confirmed') {
+                        badgeClass = 'bg-success-subtle text-success';
+                        icon = 'fa-check-circle';
+                    } else if (statusValue === 'completed') {
+                        badgeClass = 'bg-info-subtle text-info';
+                        icon = 'fa-check-double';
+                    } else if (statusValue === 'cancelled') {
+                        badgeClass = 'bg-danger-subtle text-danger';
+                        icon = 'fa-times-circle';
+                    } else if (statusValue === 'rescheduled') {
+                        badgeClass = 'bg-primary-subtle text-primary';
+                        icon = 'fa-calendar-alt';
+                    }
+                    
+                    previewBadge.className = `badge ${badgeClass} px-4 py-2 rounded-pill`;
+                    previewBadge.innerHTML = `<i class="fas ${icon} me-1"></i>${selectedOption.trim()}`;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'pets:owner_dashboard' %}" class="text-decoration-none"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'pets:pet_list' %}" class="text-decoration-none"><i class="fas fa-paw me-1"></i>My Pets</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        {% if form.instance.pk %}Edit Pet{% else %}Add New Pet{% endif %}
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <!-- Main Form Card -->
+            <div class="card border-0 shadow-hover rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+                <!-- Card Header with Icon -->
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded-3 p-3 me-3">
+                            <i class="fas fa-paw fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1">
+                                {% if form.instance.pk %}
+                                    <i class="fas fa-edit text-primary me-2"></i>Edit Pet Details
+                                {% else %}
+                                    <i class="fas fa-plus-circle text-primary me-2"></i>Add New Family Member
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted small mb-0">
+                                {% if form.instance.pk %}
+                                    Update your pet's information below
+                                {% else %}
+                                    Let's get to know your furry friend! Fill in the details below.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="d-flex align-items-center justify-content-between mt-4 pt-2 border-top">
+                        <div class="text-center">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 32px; height: 32px;">1</span>
+                            <small class="d-block text-muted mt-1">Basic Info</small>
+                        </div>
+                        <div class="flex-grow-1 mx-2" style="height: 3px; background: linear-gradient(90deg, #2b7a78 50%, #e9ecef 50%);"></div>
+                        <div class="text-center">
+                            <span class="badge bg-light text-dark border border-primary rounded-circle p-2" style="width: 32px; height: 32px;">2</span>
+                            <small class="d-block text-muted mt-1">Details</small>
+                        </div>
+                        <div class="flex-grow-1 mx-2" style="height: 3px; background: #e9ecef;"></div>
+                        <div class="text-center">
+                            <span class="badge bg-light text-dark border border-primary rounded-circle p-2" style="width: 32px; height: 32px;">3</span>
+                            <small class="d-block text-muted mt-1">Photo</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Body -->
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="petForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Render Django Form with Enhanced Styling -->
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-dark">
+                                <i class="fas 
+                                    {% if field.name == 'name' %}fa-tag
+                                    {% elif field.name == 'species' %}fa-paw
+                                    {% elif field.name == 'breed' %}fa-dog
+                                    {% elif field.name == 'age' %}fa-calendar-alt
+                                    {% elif field.name == 'birth_date' %}fa-birthday-cake
+                                    {% elif field.name == 'weight' %}fa-weight-scale
+                                    {% elif field.name == 'gender' %}fa-venus-mars
+                                    {% elif field.name == 'color' %}fa-palette
+                                    {% elif field.name == 'microchip' %}fa-microchip
+                                    {% elif field.name == 'medical_notes' %}fa-notes-medical
+                                    {% elif field.name == 'photo' %}fa-camera
+                                    {% elif field.name == 'allergies' %}fa-allergies
+                                    {% elif field.name == 'medications' %}fa-pills
+                                    {% else %}fa-pen{% endif %} 
+                                    text-primary me-2">
+                                </i>
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+
+                            {% if field.name == 'photo' %}
+                                <!-- Custom File Upload for Photo -->
+                                <div class="photo-upload-wrapper">
+                                    <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                           class="d-none" accept="image/*" onchange="previewImage(this)">
+                                    
+                                    <div class="file-input-label" onclick="document.getElementById('{{ field.id_for_label }}').click()">
+                                        <div class="d-flex align-items-center justify-content-between w-100">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-3 p-3 me-3">
+                                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-semibold d-block">Click to upload a photo</span>
+                                                    <small class="text-muted">JPG, PNG or GIF (max 5MB)</small>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-primary"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Preview -->
+                                    <div id="photoPreview" class="photo-preview mt-3" style="display: none;">
+                                        <div class="position-relative d-inline-block">
+                                            <img id="previewImg" src="#" alt="Preview" class="rounded-3 border" style="max-width: 200px; max-height: 200px;">
+                                            <button type="button" class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-2" 
+                                                    onclick="removeImage()" style="width: 30px; height: 30px;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div id="fileName" class="small text-primary mt-2"></div>
+                                    </div>
+
+                                    <!-- Current Photo (for edit mode) -->
+                                    {% if form.instance.photo %}
+                                    <div class="mt-3">
+                                        <small class="text-muted d-block mb-2">Current photo:</small>
+                                        <img src="{{ form.instance.photo.url }}" alt="Current" class="rounded-3 border" style="max-width: 100px; max-height: 100px;">
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                            {% elif field.field.widget.input_type == 'select' %}
+                                <!-- Styled Select Dropdown -->
+                                <div class="select-wrapper">
+                                    <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                            class="form-control form-select styled-select {% if field.errors %}is-invalid{% endif %}"
+                                            {% if field.field.required %}required{% endif %}>
+                                        {% for value, text in field.field.choices %}
+                                            <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                                {{ text }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+
+                            {% elif field.field.widget.input_type == 'textarea' %}
+                                <!-- Styled Textarea -->
+                                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                          class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                          rows="4"
+                                          placeholder="Enter {{ field.label|lower }}..."
+                                          {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+
+                            {% elif field.field.widget.input_type == 'checkbox' %}
+                                <!-- Styled Checkbox -->
+                                <div class="form-check">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                           class="form-check-input" {% if field.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                    </label>
+                                </div>
+
+                            {% elif field.field.widget.input_type == 'radio' %}
+                                <!-- Styled Radio Buttons -->
+                                <div class="d-flex gap-3">
+                                    {% for radio in field %}
+                                        <div class="form-check">
+                                            {{ radio.tag }}
+                                            <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                                {{ radio.choice_label }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                            {% elif field.field.widget.input_type == 'date' %}
+                                <!-- Styled Date Input -->
+                                <input type="date" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                       value="{{ field.value|date:'Y-m-d'|default:'' }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       {% if field.field.required %}required{% endif %}>
+
+                            {% else %}
+                                <!-- Default Text Input -->
+                                <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       value="{{ field.value|default:'' }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       placeholder="Enter {{ field.label|lower }}"
+                                       {% if field.field.required %}required{% endif %}>
+                            {% endif %}
+
+                            <!-- Help Text -->
+                            {% if field.help_text %}
+                            <div class="form-text text-muted small mt-2">
+                                <i class="fas fa-info-circle text-primary me-1"></i>{{ field.help_text }}
+                            </div>
+                            {% endif %}
+
+                            <!-- Error Messages -->
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in field.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <!-- Common Pet Types Quick Select -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-bolt text-primary me-2"></i>Quick Select Species
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill" 
+                                      onclick="setSpecies('Dog')" style="cursor: pointer;">
+                                    <i class="fas fa-dog me-1"></i>Dog
+                                </span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill" 
+                                      onclick="setSpecies('Cat')" style="cursor: pointer;">
+                                    <i class="fas fa-cat me-1"></i>Cat
+                                </span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill" 
+                                      onclick="setSpecies('Bird')" style="cursor: pointer;">
+                                    <i class="fas fa-dove me-1"></i>Bird
+                                </span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill" 
+                                      onclick="setSpecies('Rabbit')" style="cursor: pointer;">
+                                    <i class="fas fa-rabbit me-1"></i>Rabbit
+                                </span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill" 
+                                      onclick="setSpecies('Fish')" style="cursor: pointer;">
+                                    <i class="fas fa-fish me-1"></i>Fish
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn btn-primary flex-grow-1 rounded-pill py-3 fw-semibold shadow-hover" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>
+                                {% if form.instance.pk %}Update Pet{% else %}Save Pet{% endif %}
+                            </button>
+                            <a href="{% url 'pets:pet_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Card Footer with Tips -->
+                <div class="card-footer bg-light bg-opacity-50 border-0 p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-heart text-primary me-2"></i>
+                                <small class="text-muted">Add a photo for easy identification</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-weight-scale text-primary me-2"></i>
+                                <small class="text-muted">Track weight regularly</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar-check text-primary me-2"></i>
+                                <small class="text-muted">Update medical history often</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    .shadow-hover {
+        transition: all 0.3s ease;
+    }
+    .shadow-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 30px rgba(43, 122, 120, 0.15) !important;
+    }
+
+    /* Form Elements */
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #2b7a78;
+        box-shadow: 0 0 0 4px rgba(43, 122, 120, 0.1);
+        outline: none;
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: #4fa3a0;
+    }
+
+    /* Select Styling */
+    .select-wrapper {
+        position: relative;
+    }
+
+    .styled-select {
+        appearance: none;
+        padding-right: 2.5rem;
+    }
+
+    .select-arrow {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #2b7a78;
+        pointer-events: none;
+        font-size: 0.9rem;
+    }
+
+    /* File Input Styling */
+    .file-input-label {
+        border: 2px dashed #e9ecef;
+        border-radius: 16px;
+        padding: 1.5rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .file-input-label:hover {
+        border-color: #2b7a78;
+        background: rgba(43, 122, 120, 0.02);
+    }
+
+    /* Quick Select Badges */
+    .badge[onclick] {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .badge[onclick]:hover {
+        transform: translateY(-2px);
+        background: rgba(43, 122, 120, 0.2) !important;
+    }
+
+    /* Invalid State */
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .is-invalid:focus {
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1) !important;
+    }
+
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Button Styling */
+    .btn-primary {
+        background: linear-gradient(135deg, #2b7a78, #4fa3a0);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #205d5c, #2b7a78);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(43, 122, 120, 0.3);
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #dee2e6;
+        color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+        color: #495057;
+        transform: translateY(-2px);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #2b7a78;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #205d5c;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.2rem !important;
+        }
+        
+        .d-flex.gap-3 {
+            flex-direction: column;
+        }
+        
+        .btn-outline-secondary {
+            width: 100%;
+            padding: 0.8rem;
+        }
+        
+        .badge[onclick] {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem !important;
+        }
+        
+        .file-input-label {
+            padding: 1rem;
+        }
+    }
+
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-loading:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Textarea */
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* Checkbox and Radio */
+    .form-check-input:checked {
+        background-color: #2b7a78;
+        border-color: #2b7a78;
+    }
+
+    .form-check-input:focus {
+        border-color: #4fa3a0;
+        box-shadow: 0 0 0 0.25rem rgba(43, 122, 120, 0.15);
+    }
+
+    /* Photo Preview */
+    .photo-preview img {
+        border: 3px solid #2b7a78;
+        border-radius: 12px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('petForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Form submission loading state
+        form.addEventListener('submit', function(event) {
+            if (form.checkValidity()) {
+                submitBtn.classList.add('btn-loading');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            } else {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Real-time validation
+        const requiredInputs = document.querySelectorAll('[required]');
+        requiredInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                }
+            });
+        });
+
+        // Character counter for textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            const counter = document.createElement('div');
+            counter.className = 'small text-muted mt-1';
+            counter.innerHTML = `<i class="fas fa-text me-1"></i><span class="char-count">0</span> characters`;
+            textarea.parentNode.appendChild(counter);
+            
+            textarea.addEventListener('input', function() {
+                const count = this.value.length;
+                counter.querySelector('.char-count').textContent = count;
+            });
+        });
+
+        // Auto-format numbers for age and weight
+        const numberInputs = document.querySelectorAll('input[type="number"]');
+        numberInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9.]/g, '');
+            });
+        });
+    });
+
+    // Image preview function
+    function previewImage(input) {
+        const preview = document.getElementById('photoPreview');
+        const fileName = document.getElementById('fileName');
+        const img = document.getElementById('previewImg');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                preview.style.display = 'block';
+                fileName.textContent = 'Selected: ' + input.files[0].name;
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Remove image function
+    function removeImage() {
+        const preview = document.getElementById('photoPreview');
+        const fileInput = document.querySelector('input[type="file"]');
+        const fileName = document.getElementById('fileName');
+        
+        preview.style.display = 'none';
+        document.getElementById('previewImg').src = '#';
+        if (fileInput) fileInput.value = '';
+        fileName.textContent = '';
+    }
+
+    // Quick species select
+    function setSpecies(species) {
+        const speciesSelect = document.querySelector('select[name="species"]');
+        if (speciesSelect) {
+            const option = Array.from(speciesSelect.options).find(opt => 
+                opt.text.toLowerCase().includes(species.toLowerCase())
+            );
+            if (option) {
+                speciesSelect.value = option.value;
+                speciesSelect.classList.add('is-valid');
+                
+                // Highlight the selected badge
+                document.querySelectorAll('.badge[onclick]').forEach(badge => {
+                    badge.style.background = badge.textContent.includes(species) 
+                        ? 'rgba(43, 122, 120, 0.2)' 
+                        : 'rgba(43, 122, 120, 0.1)';
+                });
+            }
+        }
+    }
+
+    // Confirm before leaving if unsaved changes
+    let formChanged = false;
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.addEventListener('change', () => formChanged = true);
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        }
+    });
+
+    document.getElementById('petForm').addEventListener('submit', function() {
+        formChanged = false;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,452 @@
+<div class="container py-3">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <!-- Main Card -->
+      <div class="card border-0 shadow-hover rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #fef9e7 100%);">
+        <!-- Card Header with Nutrition Theme -->
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <div class="d-flex align-items-center">
+            <div class="bg-warning bg-opacity-15 rounded-3 p-2 me-3" style="background: rgba(255, 193, 7, 0.1);">
+              <i class="fas fa-utensils fa-2x text-warning"></i>
+            </div>
+            <div>
+              <h4 class="fw-bold mb-1">Create Diet Plan</h4>
+              <p class="text-muted small mb-0">Design a nutritious meal plan for your furry friend</p>
+            </div>
+          </div>
+          
+          <!-- Meal Time Indicators -->
+          <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
+            <div class="text-center">
+              <span class="badge bg-warning rounded-circle p-2" style="width: 32px; height: 32px;">
+                <i class="fas fa-sun text-white small"></i>
+              </span>
+              <small class="d-block text-muted mt-1">Morning</small>
+            </div>
+            <div class="flex-grow-1 mx-2" style="height: 3px; background: linear-gradient(90deg, #ffc107 25%, #e9ecef 25%);"></div>
+            <div class="text-center">
+              <span class="badge bg-light text-warning border border-warning rounded-circle p-2" style="width: 32px; height: 32px;">
+                <i class="fas fa-cloud-sun small"></i>
+              </span>
+              <small class="d-block text-muted mt-1">Afternoon</small>
+            </div>
+            <div class="flex-grow-1 mx-2" style="height: 3px; background: #e9ecef;"></div>
+            <div class="text-center">
+              <span class="badge bg-light text-warning border border-warning rounded-circle p-2" style="width: 32px; height: 32px;">
+                <i class="fas fa-moon small"></i>
+              </span>
+              <small class="d-block text-muted mt-1">Night</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body with Form -->
+        <div class="card-body p-4">
+          <form method="post" id="dietForm" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Food Item Field -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-apple-alt text-warning me-2"></i>Food Item <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                  <i class="fas fa-drumstick-bite text-warning"></i>
+                </span>
+                <input type="text" name="food_item" class="form-control ps-2 border-start-0 rounded-end-3" 
+                       placeholder="e.g., Chicken breast, Salmon, Rice" required>
+              </div>
+              <div class="form-text text-muted mt-2">
+                <i class="fas fa-info-circle me-1"></i>Enter the main food item for this meal
+              </div>
+            </div>
+
+            <!-- Quantity Field with Unit Suggestions -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-weight-scale text-warning me-2"></i>Quantity
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                  <i class="fas fa-balance-scale text-warning"></i>
+                </span>
+                <input type="text" name="quantity" class="form-control ps-2 border-start-0 rounded-end-3" 
+                       placeholder="e.g., 200g, 1 cup, 2 pieces">
+              </div>
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill" onclick="setQuantity('200g')">200g</span>
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill" onclick="setQuantity('1 cup')">1 cup</span>
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill" onclick="setQuantity('100g')">100g</span>
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill" onclick="setQuantity('2 pieces')">2 pieces</span>
+              </div>
+            </div>
+
+            <!-- Time of Day Field with Icon Selector -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-clock text-warning me-2"></i>Time of Day
+              </label>
+              <div class="row g-2">
+                <div class="col-6 col-md-3">
+                  <div class="time-option" data-time="Morning" onclick="selectTime(this)">
+                    <div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center">
+                      <i class="fas fa-sun text-warning mb-1"></i>
+                      <div class="small fw-semibold">Morning</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="time-option" data-time="Afternoon" onclick="selectTime(this)">
+                    <div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center">
+                      <i class="fas fa-cloud-sun text-warning mb-1"></i>
+                      <div class="small fw-semibold">Afternoon</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="time-option" data-time="Evening" onclick="selectTime(this)">
+                    <div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center">
+                      <i class="fas fa-cloud-moon text-warning mb-1"></i>
+                      <div class="small fw-semibold">Evening</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="time-option" data-time="Night" onclick="selectTime(this)">
+                    <div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center">
+                      <i class="fas fa-moon text-warning mb-1"></i>
+                      <div class="small fw-semibold">Night</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <select name="time_of_day" id="timeSelect" class="d-none">
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+                <option value="Night">Night</option>
+              </select>
+            </div>
+
+            <!-- Notes Field -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-pen text-warning me-2"></i>Additional Notes
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                  <i class="fas fa-sticky-note text-warning"></i>
+                </span>
+                <textarea name="notes" class="form-control ps-2 border-start-0 rounded-end-3" 
+                          rows="3" placeholder="e.g., Serve with water, Mix with supplements, Avoid before exercise..."></textarea>
+              </div>
+            </div>
+
+            <!-- Nutrition Tips -->
+            <div class="bg-warning bg-opacity-5 rounded-3 p-3 mb-4" style="background: rgba(255, 193, 7, 0.05);">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-lightbulb text-warning me-3 mt-1"></i>
+                <div>
+                  <small class="fw-semibold d-block mb-1">💡 Nutrition Tips:</small>
+                  <small class="text-muted">Balance proteins, carbs, and fats. Ensure fresh water always available. Consult vet for special dietary needs.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-3">
+              <button type="submit" class="btn btn-warning flex-grow-1 rounded-pill py-3 fw-semibold shadow-hover" id="submitBtn">
+                <i class="fas fa-utensils me-2"></i>Save Diet Plan
+              </button>
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Card Footer with Meal Schedule Example -->
+        <div class="card-footer bg-light bg-opacity-50 border-0 p-4">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <small class="text-muted d-block mb-2"><i class="fas fa-clock me-1"></i>Sample Daily Schedule:</small>
+              <div class="d-flex gap-3 small">
+                <span><i class="fas fa-sun text-warning me-1"></i>8:00 AM</span>
+                <span><i class="fas fa-cloud-sun text-warning me-1"></i>12:00 PM</span>
+                <span><i class="fas fa-cloud-moon text-warning me-1"></i>6:00 PM</span>
+              </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+              <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill">
+                <i class="fas fa-check-circle me-1"></i>Balanced Diet Recommended
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Diet Plans Preview (Optional) -->
+      <div class="card border-0 bg-light rounded-4 mt-3">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-history text-warning me-2"></i>
+              <small class="fw-semibold">Common Diet Plans:</small>
+            </div>
+            <small class="text-muted">Chicken & Rice • Salmon & Sweet Potato • Lamb & Oats</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .shadow-hover {
+    transition: all 0.3s ease;
+  }
+  .shadow-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(255, 193, 7, 0.15) !important;
+  }
+
+  /* Form Elements */
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15);
+  }
+
+  /* Input Group */
+  .input-group-text {
+    border: 2px solid #e9ecef;
+    background: #f8f9fa;
+    color: #ffc107;
+    padding: 0.75rem 1rem;
+  }
+
+  .input-group .form-control {
+    border-left: none;
+  }
+
+  .input-group .form-control:focus {
+    border-left: none;
+  }
+
+  /* Time Option Cards */
+  .time-option {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .time-option:hover .bg-warning {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(255, 193, 7, 0.2);
+  }
+
+  .time-option.selected .bg-warning {
+    background: #ffc107 !important;
+    color: white;
+  }
+
+  .time-option.selected .bg-warning i,
+  .time-option.selected .bg-warning div {
+    color: white !important;
+  }
+
+  /* Badge Subtles */
+  .bg-warning-subtle { background: rgba(255, 193, 7, 0.1); }
+  .bg-opacity-5 { background: rgba(255, 193, 7, 0.05); }
+
+  /* Button */
+  .btn-warning {
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+    border: none;
+    color: #212529;
+    transition: all 0.3s ease;
+  }
+
+  .btn-warning:hover {
+    background: linear-gradient(135deg, #ffb300, #ffa000);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(255, 193, 7, 0.3);
+  }
+
+  /* Quantity Badge Buttons */
+  .badge[onclick] {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .badge[onclick]:hover {
+    transform: scale(1.05);
+    background: rgba(255, 193, 7, 0.2) !important;
+  }
+
+  /* Animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card {
+    animation: fadeInUp 0.4s ease-out;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 1.2rem !important;
+    }
+    
+    .d-flex.gap-3 {
+      flex-direction: column;
+    }
+    
+    .btn-outline-secondary {
+      width: 100%;
+      padding: 0.8rem;
+    }
+    
+    .row.g-2 {
+      margin-bottom: 1rem;
+    }
+  }
+
+  /* Loading State */
+  .btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .btn-loading:after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid #212529;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Textarea resize */
+  textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('dietForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const timeSelect = document.getElementById('timeSelect');
+    
+    // Form submission loading state
+    form.addEventListener('submit', function(event) {
+      if (form.checkValidity()) {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+      } else {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+
+    // Real-time validation
+    const foodInput = document.querySelector('input[name="food_item"]');
+    if (foodInput) {
+      foodInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+          this.classList.remove('is-invalid');
+          this.classList.add('is-valid');
+        } else {
+          this.classList.remove('is-valid');
+        }
+      });
+    }
+
+    // Character counter for notes
+    const notesTextarea = document.querySelector('textarea[name="notes"]');
+    if (notesTextarea) {
+      const counter = document.createElement('small');
+      counter.className = 'text-muted mt-1 d-block';
+      counter.innerHTML = `<i class="fas fa-text me-1"></i><span id="charCount">0</span> characters`;
+      notesTextarea.parentElement.after(counter);
+
+      notesTextarea.addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+      });
+    }
+  });
+
+  // Set quantity from badge
+  function setQuantity(value) {
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    if (quantityInput) {
+      quantityInput.value = value;
+      quantityInput.classList.add('is-valid');
+      
+      // Highlight the selected badge
+      document.querySelectorAll('.badge[onclick]').forEach(badge => {
+        badge.style.background = badge.textContent.includes(value) ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 193, 7, 0.1)';
+      });
+    }
+  }
+
+  // Select time of day
+  function selectTime(element) {
+    // Remove selected class from all
+    document.querySelectorAll('.time-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked
+    element.classList.add('selected');
+    
+    // Update hidden select
+    const timeValue = element.dataset.time;
+    const timeSelect = document.getElementById('timeSelect');
+    if (timeSelect) {
+      timeSelect.value = timeValue;
+      
+      // Trigger change event
+      const event = new Event('change', { bubbles: true });
+      timeSelect.dispatchEvent(event);
+    }
+  }
+
+  // Initialize default time selection (Morning)
+  setTimeout(() => {
+    const morningOption = document.querySelector('[data-time="Morning"]');
+    if (morningOption) {
+      selectTime(morningOption);
+    }
+  }, 100);
+</script>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- templates/pets/prescription_form.html -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-3">
+      💊 {% if form.instance.pk %} Edit Prescription {% else %} Add Prescription {% endif %}
+    </h5>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">
+        {% if form.instance.pk %} 💾 Update {% else %} ➕ Save {% endif %}
+      </button>
+    </form>
+
+    <a href="{% url 'pets:pet_detail' pet.id %}" class="btn btn-secondary mt-2">⬅ Back</a>
+  </div>
+</div>
+
+{% endblock %}

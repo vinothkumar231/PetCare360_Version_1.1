@@ -1,0 +1,752 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+  <!-- Welcome Header with Stats -->
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+      <h2 class="display-6 fw-bold text-dark">
+        <i class="fas fa-paw text-primary me-2"></i>Welcome back, {{ owner.username }}!
+      </h2>
+      <p class="text-muted lead">Here's what's happening with your pets today</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+      <span class="badge bg-primary bg-opacity-10 text-primary p-3 rounded-pill">
+        <i class="fas fa-calendar-alt me-2"></i>{{ total_pets|default:0 }} Pets • {{ upcoming_appointments|default:0 }} Appointments
+      </span>
+    </div>
+  </div>
+
+  {% if pets %}
+  <div class="row g-4">
+    {% for pet in pets %}
+    <div class="col-xl-6">
+      <!-- Pet Card with Glassmorphism Effect -->
+      <div class="card border-0 shadow-hover overflow-hidden" 
+           style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+        <div class="row g-0">
+          <!-- Pet Photo Section with Gradient Overlay -->
+          <div class="col-md-5 position-relative">
+            {% if pet.photo %}
+            <div class="position-relative h-100" style="min-height: 280px;">
+              <img src="{{ pet.photo.url }}" class="h-100 w-100" id="pet-photo-{{ pet.id }}"
+                   alt="{{ pet.name }}" style="object-fit: cover; object-position: center; cursor: pointer;"
+                   data-bs-toggle="modal" data-bs-target="#petProfileModal{{ pet.id }}">
+              
+              <!-- Adjust Photo Button -->
+              <button type="button" class="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm"
+                      style="width: 32px; height: 32px; z-index: 10; padding: 0; display: flex; align-items: center; justify-content: center;"
+                      onclick="openCropperModal('{{ pet.id }}', '{{ pet.photo.url }}')"
+                      title="Adjust Photo">
+                <i class="fas fa-crop-alt text-primary"></i>
+              </button>
+              <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient-dark text-white">
+                <h5 class="mb-0 fw-bold">{{ pet.name }}</h5>
+                <small><i class="fas fa-map-marker-alt me-1"></i>{{ pet.breed }}</small>
+              </div>
+            </div>
+            {% else %}
+            <div class="bg-gradient-primary d-flex align-items-center justify-content-center h-100" 
+                 style="min-height: 280px; border-radius: 24px 0 0 24px;">
+              <i class="fas fa-paw fa-4x text-white opacity-50"></i>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Pet Details Section -->
+          <div class="col-md-7">
+            <div class="card-body p-4">
+              <!-- Pet Stats Row -->
+              <div class="d-flex gap-3 mb-3">
+                <div class="text-center">
+                  <div class="bg-primary bg-opacity-10 rounded-circle p-2 mb-1" style="width: 45px; height: 45px;">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                  </div>
+                  <small class="fw-bold">{{ pet.age_years }} yrs</small>
+                </div>
+                <div class="text-center">
+                  <div class="bg-success bg-opacity-10 rounded-circle p-2 mb-1" style="width: 45px; height: 45px;">
+                    <i class="fas fa-weight-scale text-success"></i>
+                  </div>
+                  <small class="fw-bold">{{ pet.weight_kg }} kg</small>
+                </div>
+                <div class="text-center">
+                  <div class="bg-info bg-opacity-10 rounded-circle p-2 mb-1" style="width: 45px; height: 45px;">
+                    <i class="fas fa-venus-mars text-info"></i>
+                  </div>
+                  <small class="fw-bold">{{ pet.gender|default:"N/A" }}</small>
+                </div>
+              </div>
+
+              <!-- Quick Action Buttons Group -->
+              <div class="mb-4">
+                <div class="d-flex flex-wrap gap-2 quick-action-btns">
+                  <a href="{% url 'trackers:tracker_dashboard' pet.id %}" class="btn btn-sm btn-soft-primary">
+                    <i class="fas fa-map-marker-alt me-1"></i>Track
+                  </a>
+                  <a href="{% url 'pets:add_vaccination_pet' pet.id %}" class="btn btn-sm btn-soft-success">
+                    <i class="fas fa-syringe me-1"></i>Vaccine
+                  </a>
+                  <a href="{% url 'pets:add_medical_record' pet.id %}" class="btn btn-sm btn-soft-info">
+                    <i class="fas fa-notes-medical me-1"></i>Medical
+                  </a>
+                  <a href="{% url 'pets:add_prescription' pet.id %}" class="btn btn-sm btn-soft-warning">
+                    <i class="fas fa-prescription-bottle me-1"></i>Prescription
+                  </a>
+                  <a href="{% url 'pets:diet_planner_dashboard' pet.id %}" class="btn btn-sm btn-soft-success">
+                    <i class="fas fa-utensils me-1"></i>Diet Planner
+                  </a>
+                  <a href="{% url 'pets:mood_tracker_dashboard' pet.id %}" class="btn btn-sm btn-soft-warning">
+                    <i class="fas fa-smile me-1"></i>Mood
+                  </a>
+                  <a href="{% url 'pets:add_allergy' pet.id %}" class="btn btn-sm btn-soft-danger">
+                    <i class="fas fa-allergies me-1"></i>Allergy
+                  </a>
+                  <a href="{% url 'pets:vet_connect_dashboard' pet.id %}" class="btn btn-sm btn-primary text-white shadow-sm" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 500; white-space: nowrap;">
+                    <i class="fas fa-stethoscope me-1"></i>Vet Connect
+                  </a>
+                </div>
+              </div>
+
+              <!-- Modern Tab Navigation -->
+              <div class="modern-tabs mb-3">
+                <ul class="nav nav-pills nav-fill gap-1 p-1 bg-light rounded-4" 
+                    id="petTabs{{ pet.id }}" role="tablist" style="font-size: 0.85rem;">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-4" data-bs-toggle="tab" 
+                            data-bs-target="#vaccinations{{ pet.id }}" type="button">
+                      <i class="fas fa-syringe me-1"></i>💉 Vac
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <button class="nav-link rounded-4" data-bs-toggle="tab" 
+                            data-bs-target="#medical{{ pet.id }}" type="button">
+                      <i class="fas fa-heartbeat me-1"></i>🏥 Med
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <button class="nav-link rounded-4" data-bs-toggle="tab" 
+                            data-bs-target="#prescriptions{{ pet.id }}" type="button">
+                      <i class="fas fa-pills me-1"></i>💊 Rx
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <button class="nav-link rounded-4" data-bs-toggle="tab" 
+                            data-bs-target="#diet{{ pet.id }}" type="button">
+                      <i class="fas fa-apple-alt me-1"></i>🥗 Diet
+                    </button>
+                  </li>
+                  <li class="nav-item">
+                    <button class="nav-link rounded-4" data-bs-toggle="tab" 
+                            data-bs-target="#allergies{{ pet.id }}" type="button">
+                      <i class="fas fa-exclamation-triangle me-1"></i>⚠️ All
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Tab Content with Modern Styling -->
+              <div class="tab-content" style="max-height: 200px; overflow-y: auto;">
+                <!-- Vaccinations -->
+                <div class="tab-pane fade show active" id="vaccinations{{ pet.id }}">
+                  {% if pet.vaccinations.all %}
+                    <div class="list-group list-group-flush">
+                      {% for v in pet.vaccinations.all|slice:":3" %}
+                        <div class="list-group-item bg-transparent px-0 py-2 border-0 border-bottom">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                              <i class="fas fa-check-circle text-success me-2"></i>
+                              <span class="fw-semibold">{{ v.vaccine_name }}</span>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning rounded-pill">
+                              <i class="far fa-calendar me-1"></i>{{ v.next_due }}
+                            </span>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <p class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No vaccinations yet</p>
+                  {% endif %}
+                </div>
+
+                <!-- Medical History -->
+                <div class="tab-pane fade" id="medical{{ pet.id }}">
+                  {% if pet.medical_history.all %}
+                    {% for m in pet.medical_history.all %}
+                      <div class="mb-2 p-2 bg-light rounded-3">
+                        <div class="d-flex justify-content-between">
+                          <span class="fw-semibold">{{ m.condition }}</span>
+                          <div>
+                            <a href="{% url 'pets:edit_history' m.id %}" class="text-warning me-2"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'pets:delete_history' m.id %}" class="text-danger"><i class="fas fa-trash"></i></a>
+                          </div>
+                        </div>
+                        <small class="text-muted">{{ m.date_diagnosed }}</small>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <p class="text-muted text-center py-3">No medical records</p>
+                  {% endif %}
+                </div>
+
+                <!-- Prescriptions -->
+                <div class="tab-pane fade" id="prescriptions{{ pet.id }}">
+                  {% if pet.prescriptions.all %}
+                    {% for p in pet.prescriptions.all %}
+                      <div class="mb-2 p-2 bg-light rounded-3">
+                        <div class="d-flex justify-content-between">
+                          <span class="fw-semibold">{{ p.medicine_name }}</span>
+                          <div>
+                            <a href="{% url 'pets:edit_prescription' p.id %}" class="text-warning me-2"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'pets:delete_prescription' p.id %}" class="text-danger"><i class="fas fa-trash"></i></a>
+                          </div>
+                        </div>
+                        <small class="text-muted">{{ p.dosage }}</small>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <p class="text-muted text-center py-3">No prescriptions</p>
+                  {% endif %}
+                </div>
+
+                <!-- Diet Plans -->
+                <div class="tab-pane fade" id="diet{{ pet.id }}">
+                  <div class="text-center mb-3 mt-1">
+                    <a href="{% url 'pets:diet_planner_dashboard' pet.id %}" class="btn btn-sm btn-success rounded-pill w-100 fw-bold shadow-sm">
+                      <i class="fas fa-magic me-1"></i> Access AI Diet Planner
+                    </a>
+                  </div>
+                  {% if pet.diet_plans.all %}
+                    {% for d in pet.diet_plans.all|slice:":2" %}
+                      <div class="mb-2 p-2 bg-light rounded-3 border-start border-4 border-success">
+                        <div class="d-flex justify-content-between text-truncate">
+                          <span class="fw-semibold">{{ d.food_item }}</span>
+                          <span class="badge bg-success-subtle text-success">{{ d.food_type }}</span>
+                        </div>
+                        <small class="text-muted">{{ d.meal_date|date:"M d" }} • {{ d.time_of_day }}</small>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <p class="text-muted text-center py-2 m-0 small">No diet plans logged</p>
+                  {% endif %}
+                </div>
+
+                <!-- Allergies -->
+                <div class="tab-pane fade" id="allergies{{ pet.id }}">
+                  {% if pet.allergy_set.all %}
+                    {% for a in pet.allergy_set.all|slice:":2" %}
+                      <div class="mb-2 p-2 bg-light rounded-3">
+                        <span class="fw-semibold">{{ a.allergen }}</span>
+                        <span class="badge bg-danger-subtle text-danger float-end">{{ a.severity }}</span>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <p class="text-muted text-center py-3">No allergies</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Action Footer -->
+              <div class="mt-3 d-flex gap-2 justify-content-end">
+                <a href="{% url 'pets:pet_detail' pet.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                  <i class="fas fa-eye me-1"></i>View
+                </a>
+                <a href="{% url 'pets:pet_update' pet.pk %}" class="btn btn-sm btn-outline-info rounded-pill">
+                  <i class="fas fa-edit me-1"></i>Edit
+                </a>
+                <a href="{% url 'pets:pet_delete' pet.pk %}" class="btn btn-sm btn-outline-danger rounded-pill">
+                  <i class="fas fa-trash me-1"></i>Delete
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Pet Profile -->
+    <div class="modal fade" id="petProfileModal{{ pet.id }}" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+          <div class="modal-header bg-primary text-white border-0">
+            <h5 class="modal-title"><i class="fas fa-paw me-2"></i>{{ pet.name }}'s Profile</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="text-muted small">Breed</label>
+                  <p class="fw-bold">{{ pet.breed }}</p>
+                </div>
+                <div class="mb-3">
+                  <label class="text-muted small">Age</label>
+                  <p class="fw-bold">{{ pet.age_years }} years</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="text-muted small">Weight</label>
+                  <p class="fw-bold">{{ pet.weight_kg }} kg</p>
+                </div>
+                <div class="mb-3">
+                  <label class="text-muted small">Owner</label>
+                  <p class="fw-bold">{{ owner.username }}</p>
+                </div>
+              </div>
+            </div>
+            <hr>
+            <h6 class="fw-bold mb-3">Vaccination History</h6>
+            <div class="list-group">
+              {% for v in pet.vaccinations.all %}
+                <div class="list-group-item d-flex justify-content-between">
+                  <span><i class="fas fa-syringe text-primary me-2"></i>{{ v.vaccine_name }}</span>
+                  <span class="badge bg-primary-subtle">Next: {{ v.next_due }}</span>
+                </div>
+              {% empty %}
+                <p class="text-muted">No vaccinations yet.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <div class="mb-4">
+      <i class="fas fa-dog fa-5x text-primary opacity-50"></i>
+    </div>
+    <h3 class="fw-bold">No Pets Added Yet</h3>
+    <p class="text-muted mb-4">Start by adding your first furry friend!</p>
+    <a href="{% url 'pets:pet_create' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+      <i class="fas fa-plus-circle me-2"></i>Add Your First Pet
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Appointments Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header pt-3 pb-3 px-4" style="background-color: #3b918a; border-bottom: none;">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h4 class="fw-bold mb-0 text-white">
+              <i class="fas fa-calendar-check me-2"></i>Upcoming Appointments
+            </h4>
+            <div class="d-flex align-items-center gap-3">
+              {% if pets %}
+              <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-light fw-bold rounded-pill shadow-sm">
+                <i class="fas fa-list me-1"></i> My Appointments
+              </a>
+              <a href="{% url 'appointments:book_appointment' pets.0.id %}" class="btn btn-sm btn-light fw-bold rounded-pill shadow-sm">
+                <i class="fas fa-plus me-1"></i> Add Appointment
+              </a>
+              {% endif %}
+              <span class="badge rounded-pill px-3 py-2 fw-bold" style="background-color: #1a73e8; font-size: 0.9rem;">
+                {{ appointments|length }} Total
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-4 bg-white">
+          {% if appointments %}
+          <!-- Automatically Scrolling Appointments Wrapper -->
+          <div class="appointments-slider-wrapper" style="overflow: hidden; position: relative;">
+            <div class="d-flex appointments-marquee pb-2" style="gap: 1.5rem; white-space: nowrap;">
+              {% for appt in appointments %}
+              <div class="card border border-1 border-light flex-shrink-0 appointment-slide-card shadow-sm" 
+                   style="width: 320px; transition: all 0.3s ease; background: #ffffff; border-radius: 16px; display: inline-block;">
+                <div class="card-body p-4 text-start" style="white-space: normal;">
+                  <!-- Header -->
+                  <div class="d-flex justify-content-start align-items-center mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-paw text-primary fa-lg"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0">{{ appt.pet.name }}</h6>
+                      <span class="badge bg-info-subtle text-info px-2 py-1 rounded-pill mt-1" style="font-size: 0.75rem;">
+                        {{ appt.get_appointment_type_display|default:appt.appointment_type }}
+                      </span>
+                    </div>
+                  </div>
+                  <hr class="text-muted opacity-25 mb-3">
+                  <!-- Details -->
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                       <div class="text-center me-3" style="width: 24px;"><i class="far fa-calendar-alt text-primary"></i></div>
+                       <span class="fw-semibold text-dark">{{ appt.date }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                       <div class="text-center me-3" style="width: 24px;"><i class="far fa-clock text-warning"></i></div>
+                       <span class="text-muted">{{ appt.time }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                       <div class="text-center me-3" style="width: 24px;"><i class="fas fa-info-circle text-secondary"></i></div>
+                       <div>
+                         {% if appt.status|lower == 'confirmed' %}
+                           <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1"><i class="fas fa-check-circle me-1"></i>{{ appt.status|title }}</span>
+                         {% elif appt.status|lower == 'pending' %}
+                           <span class="badge bg-warning-subtle text-warning rounded-pill px-2 py-1"><i class="fas fa-clock me-1"></i>{{ appt.status|title }}</span>
+                         {% else %}
+                           <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1">{{ appt.status|title }}</span>
+                         {% endif %}
+                       </div>
+                    </div>
+                    <div class="d-flex align-items-center pt-1">
+                       <div class="text-center me-3" style="width: 24px;"><i class="fas fa-user-md text-info"></i></div>
+                       <span class="text-muted fs-6">{% if appt.vet %}{{ appt.vet.username }}{% else %}Not Assigned{% endif %}</span>
+                    </div>
+                  </div>
+                  <!-- Action -->
+                  <div class="mt-4">
+                    <button class="btn w-100 rounded-pill py-2" style="background-color: #f8f9fa; color: #1a73e8; border: 1px solid #e9ecef; font-weight: 600;" onclick="window.location.href='{% url 'appointments:book_appointment' appt.pet.id %}'">
+                      <i class="fas fa-calendar-plus me-1"></i>Reschedule
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No appointments scheduled</p>
+            {% if pets %}
+            <a href="{% url 'appointments:book_appointment' pets.0.id %}" class="btn btn-primary rounded-pill">
+              <i class="fas fa-plus-circle me-2"></i>Book First Appointment
+            </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Appointments Marquee Animation */
+  .appointments-slider-wrapper:hover .appointments-marquee {
+    animation-play-state: paused;
+  }
+  
+  .appointments-marquee {
+    animation: scroll-horizontal 15s linear infinite;
+  }
+  
+  @keyframes scroll-horizontal {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* Custom Styles */
+  .shadow-hover {
+    transition: all 0.3s ease;
+  }
+  .shadow-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.1) !important;
+  }
+  
+  .bg-gradient-dark {
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  }
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #3a7b7a, #4fa3a0);
+  }
+  
+  /* Quick action buttons alignment */
+  .quick-action-btns .btn {
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: 105px;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .btn-soft-primary {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .btn-soft-primary:hover {
+    background: #0d6efd;
+    color: white;
+  }
+
+  /* Soft button variants */
+  .btn-soft-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .btn-soft-success:hover {
+    background: #28a745;
+    color: white;
+  }
+  
+  .btn-soft-info {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .btn-soft-info:hover {
+    background: #17a2b8;
+    color: white;
+  }
+  
+  .btn-soft-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .btn-soft-warning:hover {
+    background: #ffc107;
+    color: white;
+  }
+  
+  .btn-soft-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .btn-soft-danger:hover {
+    background: #dc3545;
+    color: white;
+  }
+  
+  /* Tab pill styling */
+  .nav-pills .nav-link {
+    color: #6c757d;
+    padding: 0.4rem 0;
+    font-size: 0.8rem;
+  }
+  
+  .nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #3a7b7a, #4fa3a0);
+    color: white;
+  }
+  
+  /* Custom scrollbar */
+  .tab-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .tab-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  .tab-content::-webkit-scrollbar-thumb {
+    background: #3a7b7a;
+    border-radius: 4px;
+  }
+  
+  /* Badge subtles */
+  .bg-primary-subtle { background: rgba(58, 123, 122, 0.1); }
+  .bg-success-subtle { background: rgba(40, 167, 69, 0.1); }
+  .bg-warning-subtle { background: rgba(255, 193, 7, 0.1); }
+  .bg-danger-subtle { background: rgba(220, 53, 69, 0.1); }
+  .bg-info-subtle { background: rgba(23, 162, 184, 0.1); }
+  .bg-secondary-subtle { background: rgba(108, 117, 125, 0.1); }
+  
+  /* Appointment Slider Styling */
+  .appointments-slider::-webkit-scrollbar {
+    height: 8px;
+  }
+  .appointments-slider::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+  }
+  .appointments-slider::-webkit-scrollbar-thumb {
+    background: #3a7b7a;
+    border-radius: 10px;
+  }
+  .appointments-slider::-webkit-scrollbar-thumb:hover {
+    background: #2b5958;
+  }
+  .appointment-slide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+  }
+  
+  
+  /* Animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .card {
+    animation: fadeInUp 0.5s ease-out;
+  }
+</style>
+
+<!-- Extra JS for tooltips etc -->
+{% block extra_js %}
+<script>
+  // Enable popovers and tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+  });
+</script>
+
+{% csrf_token %}
+<!-- Cropper.js Dependencies -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<!-- Cropper Modal -->
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 rounded-4 overflow-hidden">
+      <div class="modal-header bg-light border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-crop-alt text-primary me-2"></i>Adjust Profile Frame</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center bg-dark p-0">
+        <!-- Container for cropper -->
+        <div style="max-height: 65vh; overflow: hidden; display: flex; justify-content: center; background: #000;">
+          <img id="cropperImage" src="" style="max-width: 100%; display: block;">
+        </div>
+      </div>
+      <div class="modal-footer border-0 bg-light">
+        <button type="button" class="btn btn-secondary rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-pill fw-bold" id="btnCropSave">
+          <i class="fas fa-check-circle me-1"></i>Save Picture
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let cropper;
+  let currentPetId = null;
+  let cropperModalInstance = null;
+  const cropperImage = document.getElementById('cropperImage');
+  const btnCropSave = document.getElementById('btnCropSave');
+
+  document.addEventListener('DOMContentLoaded', function() {
+    cropperModalInstance = new bootstrap.Modal(document.getElementById('cropperModal'));
+  });
+
+  window.openCropperModal = function(petId, imageUrl) {
+    // Prevent event from bubbling up to the card if there's any
+    if (window.event) window.event.stopPropagation();
+
+    currentPetId = petId;
+    cropperImage.src = imageUrl;
+    
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    
+    cropperModalInstance.show();
+    
+    const modalEl = document.getElementById('cropperModal');
+    // Ensure we only attach this once per opening
+    const initCropper = function() {
+      cropper = new Cropper(cropperImage, {
+        aspectRatio: 1, // 1:1 Square crop
+        viewMode: 1,
+        autoCropArea: 0.9,
+        dragMode: 'move', // move the image instead of creating new crop boxes
+        guides: true,
+        center: true,
+        highlight: false,
+        cropBoxMovable: false, // fixed crop box in center
+        cropBoxResizable: false, // Fixed size crop box
+        toggleDragModeOnDblclick: false
+      });
+      modalEl.removeEventListener('shown.bs.modal', initCropper);
+    };
+    modalEl.addEventListener('shown.bs.modal', initCropper);
+  };
+
+  if(btnCropSave){
+    btnCropSave.addEventListener('click', function() {
+      if (!cropper || !currentPetId) return;
+      
+      btnCropSave.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+      btnCropSave.disabled = true;
+
+      cropper.getCroppedCanvas({
+        width: 600,
+        height: 600,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      }).toBlob((blob) => {
+        const formData = new FormData();
+        // Generate a dynamic filename to prevent browser caching
+        const dynamicFileName = 'cropped_' + new Date().getTime() + '.jpg';
+        formData.append('image', blob, dynamicFileName);
+        
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? 
+                          document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+
+        // Added slash to properly route
+        fetch(`/pets/${currentPetId}/update-photo/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Update the specific dashboard image directly by ID
+            const petImgEl = document.getElementById('pet-photo-' + currentPetId);
+            if (petImgEl) {
+                petImgEl.src = data.new_url;
+            }
+            // Force a smooth reload to ensure images everywhere (header, etc) get updated
+            setTimeout(() => { location.reload(); }, 300);
+            cropperModalInstance.hide();
+          } else {
+            alert('Failed to save cropped image: ' + (data.message || 'Unknown error'));
+          }
+        })
+        .catch(err => {
+          alert('An error occurred. Please try again.');
+          console.error(err);
+        })
+        .finally(() => {
+          btnCropSave.innerHTML = '<i class="fas fa-check-circle me-1"></i>Save Picture';
+          btnCropSave.disabled = false;
+        });
+      }, 'image/jpeg', 0.9);
+    });
+  }
+</script>
+{% endblock %}
+{% endblock %}

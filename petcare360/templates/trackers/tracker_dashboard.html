@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="display-6 fw-bold text-dark">
+                <i class="fas fa-map-marked-alt text-primary me-3"></i>{{ pet.name }}'s Location Tracker
+            </h2>
+            <p class="text-muted lead">Live GPS Tracking & Geofence Management</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'pets:owner_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts Container -->
+    <div id="alertsContainer" class="mb-4"></div>
+
+    <div class="row">
+        <!-- Map Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-satellite-dish text-success me-2"></i>Live Map</h5>
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill" id="connectionStatus">
+                        <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Connected
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="petMap" style="height: 600px; width: 100%; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 1;"></div>
+                </div>
+            </div>
+            
+            <!-- Simulation Controls -->
+            <div class="card border-0 shadow-sm rounded-4 bg-light">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-laptop-code text-primary me-2"></i>Simulation Mode</h6>
+                    <p class="text-muted small">Use this panel to simulate GPS movement since physical collar hardware is not connected.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button id="simStartBtn" class="btn btn-primary rounded-pill px-4"><i class="fas fa-play me-2"></i>Start Wandering</button>
+                        <button id="simStopBtn" class="btn btn-secondary rounded-pill px-4"><i class="fas fa-stop me-2"></i>Stop</button>
+                        <button id="simEscapeBtn" class="btn btn-danger rounded-pill px-4"><i class="fas fa-running me-2"></i>Simulate Escape</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Column -->
+        <div class="col-lg-4">
+            <!-- Geofence Settings -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #3a7b7a, #4fa3a0);">
+                    <h5 class="fw-bold mb-0 text-white"><i class="fas fa-draw-polygon me-2"></i>Geofence Settings</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">Define a safe zone. You'll be alerted if {{ pet.name }} leaves this area.</p>
+                    
+                    <form id="geofenceForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Radius (Meters)</label>
+                            <input type="range" class="form-range" id="geofenceRadius" min="10" max="1000" step="10" value="100">
+                            <div class="text-center mt-2 fw-bold text-primary fs-5" id="radiusDisplay">100m</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" id="setCenterBtn" class="btn btn-outline-primary rounded-pill py-2">
+                                <i class="fas fa-crosshairs me-2"></i>Set Current as Center
+                            </button>
+                            <button type="submit" class="btn btn-primary rounded-pill shadow-hover py-2">
+                                <i class="fas fa-save me-2"></i>Save Geofence
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Last Known Location -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-history text-info me-2"></i>Recent History</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div id="historyList" class="d-flex flex-column gap-3">
+                        <div class="text-center text-muted py-3">Fetching history...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<style>
+    .shadow-hover { transition: all 0.3s ease; }
+    .shadow-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(58, 123, 122, 0.2) !important; }
+    .history-item { border-left: 3px solid #3a7b7a; padding-left: 1rem; }
+    .alert-card { border-left: 4px solid #dc3545; }
+    .bg-success-subtle { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const petId = {{ pet.id }};
+        const defaultLat = 12.9716; // Default starting location
+        const defaultLng = 77.5946;
+        
+        let currentLat = defaultLat;
+        let currentLng = defaultLng;
+        let geofenceLat = currentLat;
+        let geofenceLng = currentLng;
+        let geofenceRadius = 100;
+
+        // Initialize Map
+        const map = L.map('petMap').setView([currentLat, currentLng], 16);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Map Layers
+        // Primary Pet Marker
+        const petIcon = L.divIcon({
+            html: '<div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 32px; height: 32px;"><i class="fas fa-paw"></i></div>',
+            className: '',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+        
+        let petMarker = L.marker([currentLat, currentLng], {icon: petIcon}).addTo(map);
+        let geofenceCircle = L.circle([geofenceLat, geofenceLng], {
+            color: '#3a7b7a',
+            fillColor: '#4fa3a0',
+            fillOpacity: 0.2,
+            radius: geofenceRadius
+        }).addTo(map);
+        
+        let historyPolyline = L.polyline([], {color: '#dc3545', weight: 4, opacity: 0.7, dashArray: '5, 10'}).addTo(map);
+
+        // Fetch Initial Data
+        fetchGeofence();
+        fetchHistory();
+        fetchAlerts();
+
+        function updateMapPosition(lat, lng) {
+            currentLat = lat;
+            currentLng = lng;
+            petMarker.setLatLng([lat, lng]);
+            map.panTo([lat, lng]);
+        }
+
+        function fetchGeofence() {
+            fetch(`/trackers/api/${petId}/geofence/get/`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        geofenceLat = data.geofence.lat;
+                        geofenceLng = data.geofence.lng;
+                        geofenceRadius = data.geofence.radius;
+                        
+                        geofenceCircle.setLatLng([geofenceLat, geofenceLng]);
+                        geofenceCircle.setRadius(geofenceRadius);
+                        
+                        document.getElementById('geofenceRadius').value = geofenceRadius;
+                        document.getElementById('radiusDisplay').innerText = geofenceRadius + 'm';
+                    }
+                });
+        }
+
+        function fetchHistory() {
+            fetch(`/trackers/api/${petId}/history/?limit=20`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success && data.locations.length > 0) {
+                        const latest = data.locations[0];
+                        updateMapPosition(latest.lat, latest.lng);
+                        
+                        const latlngs = data.locations.map(loc => [loc.lat, loc.lng]);
+                        historyPolyline.setLatLngs(latlngs);
+                        
+                        const list = document.getElementById('historyList');
+                        list.innerHTML = '';
+                        data.locations.slice(0, 5).forEach((loc, index) => {
+                            const date = new Date(loc.timestamp);
+                            list.innerHTML += `
+                                <div class="history-item">
+                                    <div class="fw-bold text-dark">${index === 0 ? 'Current Location' : 'Previous Location'}</div>
+                                    <div class="text-muted small"><i class="far fa-clock me-1"></i>${date.toLocaleTimeString()} - ${date.toLocaleDateString()}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+        }
+
+        function fetchAlerts() {
+            fetch(`/trackers/api/${petId}/alerts/`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('alertsContainer');
+                    container.innerHTML = '';
+                    if(data.success && data.alerts.length > 0) {
+                        data.alerts.forEach(alert => {
+                            container.innerHTML += `
+                                <div class="alert alert-danger alert-dismissible fade show alert-card shadow-sm rounded-4" role="alert">
+                                    <h5 class="alert-heading fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Geofence Alert: Breach Detected!</h5>
+                                    <p class="mb-0 fs-5">${alert.message}</p>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="clearAlerts()"></button>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+        }
+        
+        window.clearAlerts = function() {
+            fetch(`/trackers/api/${petId}/alerts/clear/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+        }
+
+        // Live Polling
+        setInterval(() => {
+            fetchHistory();
+            fetchAlerts();
+        }, 3000);
+
+        // -------------------------
+        // Geofence Controls
+        // -------------------------
+        document.getElementById('geofenceRadius').addEventListener('input', function(e) {
+            document.getElementById('radiusDisplay').innerText = e.target.value + 'm';
+            geofenceCircle.setRadius(e.target.value);
+        });
+
+        document.getElementById('setCenterBtn').addEventListener('click', function() {
+            geofenceLat = currentLat;
+            geofenceLng = currentLng;
+            geofenceCircle.setLatLng([geofenceLat, geofenceLng]);
+            map.panTo([geofenceLat, geofenceLng]);
+        });
+
+        document.getElementById('geofenceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const payload = {
+                latitude: geofenceLat,
+                longitude: geofenceLng,
+                radius: document.getElementById('geofenceRadius').value
+            };
+            
+            fetch(`/trackers/api/${petId}/geofence/set/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    const btn = e.target.querySelector('button[type="submit"]');
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-primary');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-primary');
+                    }, 2000);
+                }
+            });
+        });
+
+        // -------------------------
+        // Simulation Module
+        // -------------------------
+        let simInterval;
+        
+        function sendLocation(lat, lng) {
+            fetch(`/trackers/api/${petId}/update_location/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({latitude: lat, longitude: lng})
+            });
+        }
+
+        document.getElementById('simStartBtn').addEventListener('click', function() {
+            clearInterval(simInterval);
+            this.classList.replace('btn-primary', 'btn-success');
+            this.innerHTML = '<i class="fas fa-running me-1"></i>Wandering...';
+            
+            simInterval = setInterval(() => {
+                currentLat += (Math.random() - 0.5) * 0.0004;
+                currentLng += (Math.random() - 0.5) * 0.0004;
+                updateMapPosition(currentLat, currentLng);
+                sendLocation(currentLat, currentLng);
+            }, 3000); // send every 3s
+        });
+
+        document.getElementById('simStopBtn').addEventListener('click', function() {
+            clearInterval(simInterval);
+            const startBtn = document.getElementById('simStartBtn');
+            startBtn.classList.replace('btn-success', 'btn-primary');
+            startBtn.innerHTML = '<i class="fas fa-play me-1"></i>Start Wandering';
+        });
+
+        document.getElementById('simEscapeBtn').addEventListener('click', function() {
+            clearInterval(simInterval);
+            const startBtn = document.getElementById('simStartBtn');
+            startBtn.classList.replace('btn-success', 'btn-primary');
+            startBtn.innerHTML = '<i class="fas fa-play me-1"></i>Start Wandering';
+            
+            // Jump 2000 meters away approx
+            currentLat = geofenceLat + 0.02; 
+            currentLng = geofenceLng + 0.02;
+            updateMapPosition(currentLat, currentLng);
+            sendLocation(currentLat, currentLng);
+        });
+    });
+</script>
+{% endblock %}

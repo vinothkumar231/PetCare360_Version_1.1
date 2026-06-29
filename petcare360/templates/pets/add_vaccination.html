@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Add Vaccination{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow p-4">
+    <h3 class="mb-3">💉 Add Vaccination</h3>
+    <form method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">Save</button>
+      <a href="{% url 'pets:owner_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

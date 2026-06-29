@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-clinic-medical fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h2 class="display-6 fw-bold text-dark mb-1">Veterinarian Dashboard</h2>
+                    <p class="text-muted lead mb-0">Manage your assigned appointments and patient care</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="d-inline-flex align-items-center bg-light rounded-pill px-4 py-2">
+                <i class="fas fa-calendar-check text-primary me-2"></i>
+                <span class="fw-semibold">{{ appointments|length }} Assigned Appointment{{ appointments|length|pluralize }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 col-6">
+            <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary rounded-circle p-3 me-3">
+                        <i class="fas fa-clock text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Pending</h6>
+                        <span class="h4 fw-bold text-primary">{{ pending_count|default:'0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 bg-success bg-opacity-10 rounded-4 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success rounded-circle p-3 me-3">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Completed</h6>
+                        <span class="h4 fw-bold text-success">{{ completed_count|default:'0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 bg-warning bg-opacity-10 rounded-4 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning rounded-circle p-3 me-3">
+                        <i class="fas fa-calendar-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Today</h6>
+                        <span class="h4 fw-bold text-warning">{{ today_appointments|default:'0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 bg-info bg-opacity-10 rounded-4 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info rounded-circle p-3 me-3">
+                        <i class="fas fa-users text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Patients</h6>
+                        <span class="h4 fw-bold text-info">{{ unique_pets_count|default:'0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    {% if appointments %}
+    <div class="row">
+        <div class="col-12">
+            <!-- Filter Tabs -->
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button class="btn btn-sm btn-primary rounded-pill px-4 active" data-filter="all">All Appointments</button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-4" data-filter="pending">Pending</button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-4" data-filter="completed">Completed</button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-4" data-filter="today">Today</button>
+            </div>
+
+            <!-- Appointments Grid -->
+            <div class="row g-4" id="appointmentsGrid">
+                {% for appt in appointments %}
+                <div class="col-xl-4 col-lg-6 appointment-card" 
+                     data-status="{{ appt.status }}"
+                     data-date="{{ appt.date|date:'Y-m-d' }}">
+                    <div class="card border-0 shadow-hover rounded-4 overflow-hidden h-100">
+                        <!-- Status Indicator Strip -->
+                        <div class="position-relative">
+                            <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: 
+                                {% if appt.status == 'pending' %}#ffc107
+                                {% elif appt.status == 'confirmed' %}#0d6efd
+                                {% elif appt.status == 'completed' %}#198754
+                                {% elif appt.status == 'cancelled' %}#dc3545
+                                {% else %}#6c757d{% endif %};">
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <!-- Header with Time and Status -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-3 p-2 text-center me-2" style="min-width: 60px;">
+                                        <div class="small text-muted">{{ appt.date|date:'M' }}</div>
+                                        <div class="h5 fw-bold mb-0">{{ appt.date|date:'d' }}</div>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">
+                                            <i class="far fa-clock me-1"></i>{{ appt.time }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="badge 
+                                    {% if appt.status == 'pending' %}bg-warning-subtle text-warning
+                                    {% elif appt.status == 'confirmed' %}bg-primary-subtle text-primary
+                                    {% elif appt.status == 'completed' %}bg-success-subtle text-success
+                                    {% elif appt.status == 'cancelled' %}bg-danger-subtle text-danger
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %} 
+                                    rounded-pill px-3 py-2">
+                                    <i class="fas 
+                                        {% if appt.status == 'pending' %}fa-clock
+                                        {% elif appt.status == 'confirmed' %}fa-check-circle
+                                        {% elif appt.status == 'completed' %}fa-check-double
+                                        {% elif appt.status == 'cancelled' %}fa-times-circle
+                                        {% else %}fa-question-circle{% endif %} 
+                                        me-1"></i>
+                                    {{ appt.get_status_display|default:appt.status|title }}
+                                </span>
+                            </div>
+
+                            <!-- Pet Info -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fas fa-paw fa-xl text-primary"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1">{{ appt.pet_name }}</h5>
+                                    <div class="d-flex align-items-center text-muted small">
+                                        <i class="fas fa-user me-1"></i>
+                                        <span>Owner: {{ appt.owner.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Appointment Type -->
+                            <div class="bg-light rounded-3 p-3 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-stethoscope text-primary me-2"></i>
+                                    <span class="fw-semibold">{{ appt.get_appointment_type_display|default:'General Checkup' }}</span>
+                                </div>
+                                {% if appt.reason %}
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-notes-medical me-1"></i>{{ appt.reason|truncatechars:50 }}
+                                </small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'manage_appointment' appt.id %}" 
+                                   class="btn btn-primary flex-fill rounded-pill">
+                                    <i class="fas fa-edit me-2"></i>Manage
+                                </a>
+                                <button class="btn btn-outline-primary rounded-pill" 
+                                        onclick="window.location.href='{% url 'view_pet_details' appt.pet_id %}'"
+                                        title="View Pet Details">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Footer with Additional Info -->
+                        <div class="card-footer bg-light bg-opacity-50 border-0 px-4 py-3">
+                            <div class="d-flex justify-content-between align-items-center small">
+                                <span class="text-muted">
+                                    <i class="far fa-id-card me-1"></i>ID: #{{ appt.id }}
+                                </span>
+                                {% if appt.follow_up_date %}
+                                <span class="text-warning">
+                                    <i class="fas fa-calendar-plus me-1"></i>Follow-up: {{ appt.follow_up_date }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Table for Quick Overview -->
+    <div class="card border-0 shadow-sm rounded-4 mt-5">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-list-alt text-primary me-2"></i>All Appointments Overview
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="rounded-start">Pet</th>
+                            <th>Owner</th>
+                            <th>Date & Time</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th class="rounded-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-paw text-primary me-2"></i>
+                                    <span class="fw-semibold">{{ appt.pet_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ appt.owner.username }}</td>
+                            <td>
+                                <i class="far fa-calendar text-primary me-1"></i>{{ appt.date }}<br>
+                                <small class="text-muted"><i class="far fa-clock me-1"></i>{{ appt.time }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill">
+                                    {{ appt.get_appointment_type_display|default:'General' }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if appt.status == 'pending' %}
+                                    <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% elif appt.status == 'confirmed' %}
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+                                        <i class="fas fa-check-circle me-1"></i>Confirmed
+                                    </span>
+                                {% elif appt.status == 'completed' %}
+                                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                                        <i class="fas fa-check-double me-1"></i>Completed
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">
+                                        {{ appt.status|title }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'manage_appointment' appt.id %}" class="btn btn-sm btn-primary rounded-pill">
+                                    <i class="fas fa-edit me-1"></i>Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-5">
+                <i class="fas fa-calendar-times fa-5x text-primary"></i>
+            </div>
+        </div>
+        <h3 class="fw-bold mb-3">No Appointments Assigned</h3>
+        <p class="text-muted mb-4">You don't have any appointments scheduled yet. Check back later!</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'vet_schedule' %}" class="btn btn-outline-primary rounded-pill px-5 py-3">
+                <i class="fas fa-calendar-alt me-2"></i>View Schedule
+            </a>
+            <a href="{% url 'vet_availability' %}" class="btn btn-primary rounded-pill px-5 py-3">
+                <i class="fas fa-clock me-2"></i>Set Availability
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Custom Styles */
+    .shadow-hover {
+        transition: all 0.3s ease;
+    }
+    .shadow-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px rgba(58, 123, 122, 0.15) !important;
+    }
+
+    /* Badge subtles */
+    .bg-primary-subtle { background: rgba(58, 123, 122, 0.1); color: #2a5f5e; }
+    .bg-success-subtle { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-warning-subtle { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-danger-subtle { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-info-subtle { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-secondary-subtle { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+    /* Filter button active state */
+    .btn-primary.active {
+        background: linear-gradient(135deg, #3a7b7a, #4fa3a0);
+        border-color: transparent;
+    }
+
+    /* Stats cards */
+    .bg-opacity-10 {
+        background: rgba(58, 123, 122, 0.1) !important;
+    }
+
+    .bg-primary .rounded-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .appointment-card {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    {% for appt in appointments %}
+    .appointment-card:nth-child({{ forloop.counter }}) {
+        animation-delay: {{ forloop.counter0|divisibleby:3|yesno:'0.1s,0.2s,0.3s' }};
+    }
+    {% endfor %}
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.8rem;
+        }
+        
+        .d-flex.gap-2 {
+            justify-content: center;
+        }
+    }
+
+    /* Custom scrollbar */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #3a7b7a;
+        border-radius: 10px;
+    }
+</style>
+
+<!-- Extra JavaScript for filtering -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const appointmentCards = document.querySelectorAll('.appointment-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active state
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('btn-primary', 'active');
+                    btn.classList.add('btn-outline-primary');
+                });
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-primary', 'active');
+                
+                const filterValue = this.dataset.filter;
+                const today = new Date().toISOString().split('T')[0];
+                
+                appointmentCards.forEach(card => {
+                    const status = card.dataset.status;
+                    const date = card.dataset.date;
+                    
+                    if (filterValue === 'all') {
+                        card.style.display = 'block';
+                    } else if (filterValue === 'pending') {
+                        card.style.display = status === 'pending' || status === 'confirmed' ? 'block' : 'none';
+                    } else if (filterValue === 'completed') {
+                        card.style.display = status === 'completed' ? 'block' : 'none';
+                    } else if (filterValue === 'today') {
+                        card.style.display = date === today ? 'block' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Hover effect for cards
+        appointmentCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.querySelector('.card').style.transform = 'translateY(-5px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.querySelector('.card').style.transform = 'translateY(0)';
+            });
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

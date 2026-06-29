@@ -1,0 +1,350 @@
+<div class="container py-3">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <!-- Main Card -->
+      <div class="card border-0 shadow-hover rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);">
+        <!-- Card Header with Warning Gradient -->
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <div class="d-flex align-items-center">
+            <div class="bg-danger bg-opacity-10 rounded-3 p-2 me-3">
+              <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+            </div>
+            <div>
+              <h4 class="fw-bold mb-1">Add New Allergy</h4>
+              <p class="text-muted small mb-0">Record allergies to keep your pet safe and healthy</p>
+            </div>
+          </div>
+          
+          <!-- Progress Steps -->
+          <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
+            <div class="text-center">
+              <span class="badge bg-danger rounded-circle p-2" style="width: 30px; height: 30px;">1</span>
+              <small class="d-block text-muted mt-1">Allergen</small>
+            </div>
+            <div class="flex-grow-1 mx-2" style="height: 2px; background: linear-gradient(90deg, #dc3545 50%, #e9ecef 50%);"></div>
+            <div class="text-center">
+              <span class="badge bg-light text-dark rounded-circle p-2" style="width: 30px; height: 30px;">2</span>
+              <small class="d-block text-muted mt-1">Reaction</small>
+            </div>
+            <div class="flex-grow-1 mx-2" style="height: 2px; background: #e9ecef;"></div>
+            <div class="text-center">
+              <span class="badge bg-light text-dark rounded-circle p-2" style="width: 30px; height: 30px;">3</span>
+              <small class="d-block text-muted mt-1">Severity</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body with Form -->
+        <div class="card-body p-4">
+          <form method="post" id="allergyForm" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Allergen Field with Icon -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-wheat-alt text-danger me-2"></i>Allergen <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                  <i class="fas fa-search text-danger"></i>
+                </span>
+                <input type="text" name="allergen" class="form-control ps-2 border-start-0 rounded-end-3" 
+                       placeholder="e.g., Chicken, Wheat, Dust, Pollen" required>
+              </div>
+              <div class="form-text text-muted mt-2">
+                <i class="fas fa-info-circle me-1"></i>Enter the substance that causes allergic reaction
+              </div>
+            </div>
+
+            <!-- Reaction Field with Icon -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-notes-medical text-danger me-2"></i>Reaction <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                  <i class="fas fa-syringe text-danger"></i>
+                </span>
+                <input type="text" name="reaction" class="form-control ps-2 border-start-0 rounded-end-3" 
+                       placeholder="e.g., Skin rash, Vomiting, Itching" required>
+              </div>
+              <div class="form-text text-muted mt-2">
+                <i class="fas fa-info-circle me-1"></i>Describe the symptoms your pet experiences
+              </div>
+            </div>
+
+            <!-- Severity Field with Visual Options -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                <i class="fas fa-exclamation-circle text-danger me-2"></i>Severity <span class="text-danger">*</span>
+              </label>
+              
+              <!-- Modern Select with Icons -->
+              <div class="position-relative">
+                <select name="severity" class="form-select ps-4 py-3 rounded-3 border-2" style="border-color: #e9ecef;" required>
+                  <option value="" disabled selected>-- Select severity level --</option>
+                  <option value="Mild" class="py-2">🌱 Mild - Minor discomfort, no immediate danger</option>
+                  <option value="Moderate" class="py-2">⚠️ Moderate - Noticeable symptoms, needs attention</option>
+                  <option value="Severe" class="py-2">🔥 Severe - Life-threatening, emergency care needed</option>
+                </select>
+                <i class="fas fa-chevron-down position-absolute end-0 top-50 translate-middle-y me-3 text-danger"></i>
+              </div>
+            </div>
+
+            <!-- Severity Visual Indicator (Preview) -->
+            <div class="bg-light rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between">
+              <span class="small text-muted">Selected severity will show as:</span>
+              <div class="d-flex gap-2">
+                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2" id="mildPreview" style="display: none;">
+                  <i class="fas fa-smile me-1"></i>Mild
+                </span>
+                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2" id="moderatePreview" style="display: none;">
+                  <i class="fas fa-meh me-1"></i>Moderate
+                </span>
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2" id="severePreview" style="display: none;">
+                  <i class="fas fa-frown me-1"></i>Severe
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-3">
+              <button type="submit" class="btn btn-danger flex-grow-1 rounded-pill py-3 fw-semibold shadow-hover" id="submitBtn">
+                <i class="fas fa-save me-2"></i>Save Allergy
+              </button>
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="window.history.back()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Card Footer with Safety Tips -->
+        <div class="card-footer bg-light bg-opacity-50 border-0 p-4">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle text-danger me-2"></i>
+                <small class="text-muted">Watch for reactions</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-clock text-danger me-2"></i>
+                <small class="text-muted">Note time of reaction</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-phone-alt text-danger me-2"></i>
+                <small class="text-muted">Emergency: Vet</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Card (Optional) -->
+      <div class="card border-0 bg-light rounded-4 mt-3">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-lightbulb text-warning me-3 fa-lg"></i>
+            <div>
+              <small class="text-muted d-block">💡 Common allergies in pets:</small>
+              <small class="fw-semibold">Chicken, Beef, Dairy, Wheat, Soy, Dust, Pollen, Fleas</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .shadow-hover {
+    transition: all 0.3s ease;
+  }
+  .shadow-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(220, 53, 69, 0.15) !important;
+  }
+
+  /* Form Elements */
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15);
+  }
+
+  /* Input Group */
+  .input-group-text {
+    border: 2px solid #e9ecef;
+    background: #f8f9fa;
+    color: #dc3545;
+    padding: 0.75rem 1rem;
+  }
+
+  .input-group .form-control {
+    border-left: none;
+  }
+
+  .input-group .form-control:focus {
+    border-left: none;
+  }
+
+  /* Select Arrow */
+  select.form-select {
+    appearance: none;
+    background-image: none;
+    padding-right: 2.5rem;
+  }
+
+  /* Badge Subtles */
+  .bg-success-subtle { background: rgba(25, 135, 84, 0.1); }
+  .bg-warning-subtle { background: rgba(255, 193, 7, 0.1); }
+  .bg-danger-subtle { background: rgba(220, 53, 69, 0.1); }
+
+  /* Button */
+  .btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #b21f2d);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  /* Animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card {
+    animation: fadeInUp 0.4s ease-out;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 1.2rem !important;
+    }
+    
+    .progress-steps {
+      flex-wrap: wrap;
+    }
+    
+    .d-flex.gap-3 {
+      flex-direction: column;
+    }
+    
+    .btn-outline-secondary {
+      width: 100%;
+      padding: 0.8rem;
+    }
+  }
+
+  /* Loading State */
+  .btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .btn-loading:after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('allergyForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const severitySelect = document.querySelector('select[name="severity"]');
+    const mildPreview = document.getElementById('mildPreview');
+    const moderatePreview = document.getElementById('moderatePreview');
+    const severePreview = document.getElementById('severePreview');
+
+    // Form submission loading state
+    form.addEventListener('submit', function(event) {
+      if (form.checkValidity()) {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+      } else {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+
+    // Severity preview update
+    severitySelect.addEventListener('change', function() {
+      mildPreview.style.display = 'none';
+      moderatePreview.style.display = 'none';
+      severePreview.style.display = 'none';
+      
+      const value = this.value;
+      if (value === 'Mild') mildPreview.style.display = 'inline-block';
+      else if (value === 'Moderate') moderatePreview.style.display = 'inline-block';
+      else if (value === 'Severe') severePreview.style.display = 'inline-block';
+    });
+
+    // Real-time validation
+    const allergenInput = document.querySelector('input[name="allergen"]');
+    const reactionInput = document.querySelector('input[name="reaction"]');
+
+    [allergenInput, reactionInput].forEach(input => {
+      if (input) {
+        input.addEventListener('input', function() {
+          if (this.value.length > 0) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+          } else {
+            this.classList.remove('is-valid');
+          }
+        });
+      }
+    });
+
+    // Auto-suggest common allergens (optional)
+    const commonAllergens = ['Chicken', 'Beef', 'Wheat', 'Dairy', 'Soy', 'Dust', 'Pollen', 'Fleas', 'Grass', 'Mold'];
+    
+    if (allergenInput) {
+      allergenInput.addEventListener('focus', function() {
+        // You could show a dropdown here
+      });
+    }
+  });
+</script>

@@ -1,0 +1,736 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add New Pet - PetCare 360</title>
+  
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #2b7a78;
+      --primary-light: #4fa3a0;
+      --primary-dark: #205d5c;
+      --secondary: #f4b942;
+      --bg-gradient-start: #d9fdd3;
+      --bg-gradient-end: #cce7ff;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      margin: 0;
+    }
+
+    /* Main Container */
+    .pet-form-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Main Card */
+    .pet-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 40px;
+      box-shadow: 0 20px 40px rgba(43, 122, 120, 0.12);
+      padding: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pet-card:hover {
+      box-shadow: 0 30px 50px rgba(43, 122, 120, 0.2);
+    }
+
+    .pet-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary-light));
+      border-radius: 40px 40px 0 0;
+    }
+
+    /* Header */
+    .form-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header-icon {
+      background: rgba(43, 122, 120, 0.1);
+      width: 90px;
+      height: 90px;
+      line-height: 90px;
+      border-radius: 30px;
+      margin: 0 auto 1.2rem;
+      color: var(--primary);
+      font-size: 3rem;
+      transition: all 0.3s ease;
+    }
+
+    .pet-card:hover .header-icon {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05) rotate(5deg);
+    }
+
+    .form-header h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+
+    /* Form Styling */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-label i {
+      color: var(--primary);
+      width: 20px;
+    }
+
+    .required-field::after {
+      content: '*';
+      color: #dc3545;
+      margin-left: 4px;
+    }
+
+    /* Input Fields */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      color: var(--primary);
+      font-size: 1rem;
+      z-index: 10;
+    }
+
+    .form-control, .form-select {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 45px;
+      border: 2px solid #e9ecef;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(43, 122, 120, 0.1);
+      outline: none;
+    }
+
+    .form-control:hover, .form-select:hover {
+      border-color: var(--primary-light);
+    }
+
+    /* Textarea specific */
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* File Input Styling */
+    .file-input-wrapper {
+      position: relative;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      padding: 0.85rem 1rem;
+      border: 2px dashed #e9ecef;
+      border-radius: 18px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-input-label i {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-right: 1rem;
+    }
+
+    .file-input-label:hover {
+      border-color: var(--primary);
+      background: rgba(43, 122, 120, 0.02);
+    }
+
+    .file-input-text {
+      flex: 1;
+    }
+
+    .file-input-text .primary-text {
+      display: block;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.2rem;
+    }
+
+    .file-input-text .secondary-text {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+
+    .file-name {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--primary);
+    }
+
+    /* Photo Preview */
+    .photo-preview {
+      margin-top: 1rem;
+      display: none;
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 3px solid var(--primary);
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-preview {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 24px;
+      height: 24px;
+      background: rgba(220, 53, 69, 0.9);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .remove-preview:hover {
+      background: #dc3545;
+      transform: scale(1.1);
+    }
+
+    /* Select Styling */
+    select.form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232b7a78' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 16px;
+    }
+
+    /* Help Text */
+    .help-text {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .help-text i {
+      color: var(--primary);
+      font-size: 0.75rem;
+    }
+
+    /* Error Styling */
+    .errorlist {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+    }
+
+    .errorlist li {
+      color: #dc3545;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .errorlist li i {
+      font-size: 0.75rem;
+    }
+
+    .form-control.error, .form-select.error {
+      border-color: #dc3545;
+    }
+
+    .form-control.error:focus, .form-select.error:focus {
+      box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+    }
+
+    /* Info Cards */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .info-card {
+      background: rgba(43, 122, 120, 0.05);
+      border-radius: 20px;
+      padding: 1rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+      background: rgba(43, 122, 120, 0.1);
+      transform: translateY(-3px);
+    }
+
+    .info-card i {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .info-card .info-label {
+      font-size: 0.75rem;
+      color: #6c757d;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .info-card .info-value {
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      flex: 2;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(43, 122, 120, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(43, 122, 120, 0.05);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(43, 122, 120, 0.1);
+    }
+
+    .btn i {
+      font-size: 1rem;
+    }
+
+    /* Loading State */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .btn-loading:after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin-left: -10px;
+      margin-top: -10px;
+      border: 2px solid white;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .pet-card {
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .pet-card {
+        padding: 1.5rem;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+      
+      .form-header h2 {
+        font-size: 1.8rem;
+      }
+    }
+
+    /* Pet Type Badges */
+    .pet-type-badge {
+      display: inline-block;
+      padding: 0.3rem 1rem;
+      background: rgba(43, 122, 120, 0.1);
+      color: var(--primary);
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="pet-form-container">
+    <div class="pet-card">
+      <!-- Header -->
+      <div class="form-header">
+        <div class="header-icon">
+          <i class="fas fa-paw"></i>
+        </div>
+        <h2>Add New Family Member</h2>
+        <p>Let's get to know your furry friend! Fill in the details below.</p>
+      </div>
+
+      <!-- Quick Info Cards -->
+      <div class="info-grid">
+        <div class="info-card">
+          <i class="fas fa-dog"></i>
+          <span class="info-label">Species</span>
+          <span class="info-value">Dog • Cat • Other</span>
+        </div>
+        <div class="info-card">
+          <i class="fas fa-calendar-alt"></i>
+          <span class="info-label">Age</span>
+          <span class="info-value">Birth date or years</span>
+        </div>
+        <div class="info-card">
+          <i class="fas fa-weight-scale"></i>
+          <span class="info-label">Weight</span>
+          <span class="info-value">In kg or lbs</span>
+        </div>
+      </div>
+
+      <!-- Main Form -->
+      <form method="post" enctype="multipart/form-data" id="petForm">
+        {% csrf_token %}
+        
+        {% for field in form %}
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas 
+                {% if field.name == 'name' %}fa-tag
+                {% elif field.name == 'species' %}fa-paw
+                {% elif field.name == 'breed' %}fa-dog
+                {% elif field.name == 'age' %}fa-calendar
+                {% elif field.name == 'weight' %}fa-weight-scale
+                {% elif field.name == 'photo' %}fa-camera
+                {% elif field.name == 'gender' %}fa-venus-mars
+                {% elif field.name == 'color' %}fa-palette
+                {% elif field.name == 'microchip' %}fa-microchip
+                {% elif field.name == 'medical_notes' %}fa-notes-medical
+                {% else %}fa-pen{% endif %}">
+              </i>
+              {{ field.label }}
+              {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+
+            {% if field.name == 'photo' %}
+              <!-- Custom file input for photo -->
+              <div class="file-input-wrapper">
+                <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                       accept="image/*" onchange="previewImage(this)">
+                <div class="file-input-label">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <div class="file-input-text">
+                    <span class="primary-text">Choose a photo</span>
+                    <span class="secondary-text">JPG, PNG or GIF up to 5MB</span>
+                  </div>
+                </div>
+              </div>
+              <div id="fileName" class="file-name"></div>
+              <div id="photoPreview" class="photo-preview">
+                <img id="previewImg" src="#" alt="Preview">
+                <button type="button" class="remove-preview" onclick="removeImage()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% else %}
+              <!-- Regular fields -->
+              {% if field.field.widget.input_type == 'select' %}
+                <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                        class="form-control {% if field.errors %}error{% endif %}">
+                  {% for value, text in field.field.choices %}
+                    <option value="{{ value }}" {% if field.value == value %}selected{% endif %}>{{ text }}</option>
+                  {% endfor %}
+                </select>
+              {% elif field.field.widget.input_type == 'textarea' %}
+                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                          class="form-control {% if field.errors %}error{% endif %}" 
+                          placeholder="{{ field.label }}">{{ field.value|default:'' }}</textarea>
+              {% else %}
+                <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                       name="{{ field.name }}" 
+                       id="{{ field.id_for_label }}" 
+                       value="{{ field.value|default:'' }}"
+                       class="form-control {% if field.errors %}error{% endif %}"
+                       placeholder="Enter {{ field.label|lower }}"
+                       {% if field.field.required %}required{% endif %}>
+              {% endif %}
+            {% endif %}
+
+            <!-- Help text -->
+            {% if field.help_text %}
+              <div class="help-text">
+                <i class="fas fa-info-circle"></i>
+                {{ field.help_text }}
+              </div>
+            {% endif %}
+
+            <!-- Errors -->
+            {% if field.errors %}
+              <ul class="errorlist">
+                {% for error in field.errors %}
+                  <li><i class="fas fa-exclamation-circle"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <!-- Pet Type Tags (Optional decorative) -->
+        <div style="margin: 1rem 0;">
+          <span class="pet-type-badge"><i class="fas fa-dog me-1"></i>Dog</span>
+          <span class="pet-type-badge"><i class="fas fa-cat me-1"></i>Cat</span>
+          <span class="pet-type-badge"><i class="fas fa-fish me-1"></i>Fish</span>
+          <span class="pet-type-badge"><i class="fas fa-dragon me-1"></i>Other</span>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="button-group">
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fas fa-save"></i> Save Pet
+          </button>
+          <a href="{% url 'pets:pet_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+          </a>
+        </div>
+      </form>
+
+      <!-- Success Message (hidden by default) -->
+      <div id="successMessage" style="display: none;" class="alert alert-success mt-3">
+        <i class="fas fa-check-circle me-2"></i> Pet added successfully!
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // Form submission loading state
+    document.getElementById('petForm').addEventListener('submit', function(e) {
+      const submitBtn = document.getElementById('submitBtn');
+      if (this.checkValidity()) {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = 'Saving...';
+      }
+    });
+
+    // Image preview functionality
+    function previewImage(input) {
+      const preview = document.getElementById('photoPreview');
+      const fileName = document.getElementById('fileName');
+      const img = document.getElementById('previewImg');
+      
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          img.src = e.target.result;
+          preview.style.display = 'block';
+          fileName.textContent = 'Selected: ' + input.files[0].name;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function removeImage() {
+      const preview = document.getElementById('photoPreview');
+      const fileInput = document.querySelector('input[type="file"]');
+      const fileName = document.getElementById('fileName');
+      
+      preview.style.display = 'none';
+      document.getElementById('previewImg').src = '#';
+      fileInput.value = '';
+      fileName.textContent = '';
+    }
+
+    // Add animation to form fields on focus
+    document.querySelectorAll('.form-control').forEach(field => {
+      field.addEventListener('focus', function() {
+        this.style.transform = 'scale(1.02)';
+      });
+      
+      field.addEventListener('blur', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+
+    // Character counter for textareas
+    document.querySelectorAll('textarea').forEach(textarea => {
+      const counter = document.createElement('div');
+      counter.className = 'help-text';
+      counter.innerHTML = `<i class="fas fa-text"></i> <span class="char-count">0</span> characters`;
+      textarea.parentNode.appendChild(counter);
+      
+      textarea.addEventListener('input', function() {
+        counter.querySelector('.char-count').textContent = this.value.length;
+      });
+    });
+
+    // Auto-format age input (if numeric)
+    const ageInput = document.querySelector('input[name="age"]');
+    if (ageInput) {
+      ageInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9.]/g, '');
+      });
+    }
+
+    // Show success message if URL has success parameter
+    if (window.location.search.includes('success')) {
+      const successMsg = document.getElementById('successMessage');
+      successMsg.style.display = 'block';
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 5000);
+    }
+
+    // Pet type quick select (optional enhancement)
+    document.querySelectorAll('.pet-type-badge').forEach(badge => {
+      badge.addEventListener('click', function() {
+        const species = this.textContent.trim();
+        const speciesSelect = document.querySelector('select[name="species"]');
+        if (speciesSelect) {
+          const option = Array.from(speciesSelect.options).find(opt => 
+            opt.text.toLowerCase().includes(species.toLowerCase())
+          );
+          if (option) {
+            speciesSelect.value = option.value;
+            speciesSelect.classList.add('is-valid');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
