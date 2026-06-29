@@ -1,0 +1,24 @@
+databases:
+  - name: petcare360_db
+    plan: free
+    databaseName: petcare360
+    user: petcare360_user
+
+services:
+  - type: web
+    name: petcare360
+    plan: free
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn petcare360.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: petcare360_db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.10.14"
