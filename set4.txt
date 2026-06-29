@@ -1,0 +1,9 @@
+comment to run:
+
+myenv\Scripts\activate
+cd petcare-django-main
+python manage.py runserver
+
+localhost link : http://127.0.0.1:8000/
+
+vinoth@123
