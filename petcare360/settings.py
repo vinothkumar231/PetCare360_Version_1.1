@@ -15,7 +15,30 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-4o_i+x(d!4op#h3fiihrv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com", ".vercel.app"]
+DEFAULT_ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".onrender.com",
+    ".vercel.app",
+    "petcare360-mocha.vercel.app",
+]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", ",".join(DEFAULT_ALLOWED_HOSTS)).split(",")
+    if host.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://petcare360-mocha.vercel.app,https://*.vercel.app",
+    ).split(",")
+    if origin.strip()
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 
 # Application definition
