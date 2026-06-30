@@ -2,14 +2,24 @@
   "version": 2,
   "builds": [
     {
-      "src": "Petcare360_V_1.1/wsgi.py",
+      "src": "petcare360/wsgi.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "Petcare360_V_1.1/wsgi.py"
+      "src": "./(.*)",
+      "dest": "petcare360/wsgi.py"
     }
-  ]
+  ],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "petcare360.settings",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "build": {
+    "env": {
+      "DJANGO_SETTINGS_MODULE": "petcare360.settings",
+      "PYTHONUNBUFFERED": "1"
+    }
+  }
 }
