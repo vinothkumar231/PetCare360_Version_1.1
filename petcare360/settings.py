@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-4o_i+x(d!4op#h3fiihrv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com", ".vercel.app"]
 
 
 # Application definition
@@ -48,9 +48,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "petcare360.urls"
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
