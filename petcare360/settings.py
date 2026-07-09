@@ -107,6 +107,11 @@ if os.environ.get("DATABASE_URL"):
         conn_max_age=600,
         conn_health_checks=True,
     )
+elif os.environ.get("VERCEL"):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "/tmp/db.sqlite3",
+    }
 
 
 # Password validation
