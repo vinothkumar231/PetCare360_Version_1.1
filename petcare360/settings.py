@@ -28,6 +28,9 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+if os.environ.get("VERCEL"):
+    ALLOWED_HOSTS = ["*"]
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
