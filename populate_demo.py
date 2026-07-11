@@ -9,27 +9,37 @@ django.setup()
 
 from pets.models import Pet, Vaccination, MedicalHistory, Prescription, DietPlan, Allergy, MoodLog, VetConsultation
 from django.contrib.auth import get_user_model
+import secrets
 
 User = get_user_model()
 users = User.objects.all()
-if not users.exists():
-    print("No users found. Please create a user first via the UI.")
-    exit()
 
-pets = Pet.objects.all()
-if not pets.exists():
-    print("No pets found. Creating a dummy pet.")
+demo_username = os.environ.get('DEMO_USERNAME', 'demo')
+demo_email = os.environ.get('DEMO_EMAIL', 'demo@example.com')
+demo_password = os.environ.get('DEMO_PASSWORD') or secrets.token_urlsafe(12)
+
+if not users.exists():
+    print(f"No users found. Creating demo user '{demo_username}'.")
+    print(f"Demo credentials -> username: {demo_username}, password: {demo_password}")
+    user = User.objects.create_user(username=demo_username, email=demo_email, password=demo_password)
+else:
     user = users.first()
+
+pets = Pet.objects.filter(owner=user)
+if not pets.exists():
+    print("No pets found for demo user. Creating a sample pet.")
     pet = Pet.objects.create(
-        name="Golden Boy", 
-        species="Dog", 
-        breed="Golden Retriever", 
-        age_years=3, 
-        weight_kg=30.0, 
-        owner=user, 
-        gender="Male"
+        name="Golden Boy",
+        species="Dog",
+        breed="Golden Retriever",
+        age_years=3,
+        weight_kg=30.0,
+        owner=user,
+        notes="A friendly golden retriever who loves park walks.",
     )
     pets = [pet]
+else:
+    pets = list(pets)
 
 today = timezone.now().date()
 

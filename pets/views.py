@@ -150,6 +150,59 @@ def pet_create(request):
             pet = form.save(commit=False)
             pet.owner = request.user
             pet.save()
+
+            # Seed basic starter data for newly created pets
+            today = timezone.now().date()
+            if not pet.vaccinations.exists():
+                Vaccination.objects.create(
+                    pet=pet,
+                    vaccine_name="Initial Wellness Check",
+                    date_administered=today,
+                    next_due=today + timezone.timedelta(days=365),
+                    notes="Initial health profile created automatically."
+                )
+            if not pet.medical_history.exists():
+                MedicalHistory.objects.create(
+                    pet=pet,
+                    condition="Profile created",
+                    date_diagnosed=today,
+                    treatment="Initial check-up",
+                    description="Basic profile data seeded for the new pet."
+                )
+            if not pet.prescriptions.exists():
+                Prescription.objects.create(
+                    pet=pet,
+                    medicine_name="General Wellness",
+                    dosage="As needed",
+                    prescribed_on=today,
+                    notes="Starter prescription record for pet profile."
+                )
+            if not pet.diet_plans.exists():
+                DietPlan.objects.create(
+                    pet=pet,
+                    food_type="Dry",
+                    food_item="Starter nutrition plan",
+                    quantity="200g",
+                    meal_date=today,
+                    time_of_day="Morning",
+                    notes="Basic diet plan added automatically."
+                )
+            if not pet.allergies.exists():
+                Allergy.objects.create(
+                    pet=pet,
+                    allergen="None",
+                    severity="Mild",
+                    reaction="No known allergies recorded yet."
+                )
+            if not pet.mood_logs.exists():
+                MoodLog.objects.create(
+                    pet=pet,
+                    mood="Happy",
+                    log_date=today,
+                    notes="New pet profile created."
+                )
+
+            messages.success(request, "Pet created successfully. Starter profile data has been added.")
             return redirect("pets:pet_list")
     else:
         form = PetForm()
