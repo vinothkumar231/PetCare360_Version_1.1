@@ -181,3 +181,5 @@ DATE_INPUT_FORMATS = [
     '%B %d %Y', '%B %d, %Y',
     '%d %B %Y', '%d %B, %Y'
 ]
+
+CSRF_FAILURE_VIEW = 'pets.views.csrf_failure'

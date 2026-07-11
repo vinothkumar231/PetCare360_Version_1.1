@@ -6,7 +6,7 @@ from .forms import PetForm, VaccinationForm
 from django.contrib import messages
 from .forms import SignupForm, ForgotPasswordForm
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 
 from django.utils import timezone
 from django.db.models import Count,Avg
@@ -18,6 +18,13 @@ from django.contrib.auth.decorators import login_required
 from .models import Pet, Vaccination, MedicalHistory, Prescription, DietPlan, Allergy
 from .forms import VaccinationForm, MedicalHistoryForm, PrescriptionForm, DietPlanForm, AllergyForm
 from appointments.models import Appointment
+
+
+def csrf_failure(request, reason=""):
+    is_ajax = request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest" or request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if is_ajax:
+        return JsonResponse({'success': False, 'message': 'CSRF verification failed. Please refresh and try again.'}, status=403)
+    return HttpResponseForbidden('CSRF verification failed. Request aborted.')
 
 from .forms import PrescriptionForm,DietPlanForm,AllergyForm,MedicalHistoryForm
 import joblib
